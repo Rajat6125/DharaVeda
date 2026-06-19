@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DharaVeda - Register</title>
+    <link rel="icon" href="Pic/0Logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #FDF7EC;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --accent-orange: #E68A2E;
+            --accent-green: #3B6B3F;
+            --input-border: #D1BFAe;
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('Pic/register.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            padding: 40px 0;
+            /* Adding padding to allow scrolling if card is taller than screen */
+        }
+
+        /* Dark gradient overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
+            z-index: 1;
+        }
+
+        .register-container {
+            background: rgba(0, 0, 0, 0.611);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px 32px;
+            width: 90%;
+            max-width: 480px;
+            z-index: 2;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: slideUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .logo-container img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            color: #dddddd;
+            font-size: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 14px;
+        }
+
+        .input-row .input-wrapper {
+            flex: 1;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i.prefix-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-green);
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            padding: 14px 14px 14px 44px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background-color: rgba(0, 0, 0, 0.3);
+            font-family: var(--font-family);
+            font-size: 14px;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            /* remove default arrow for select */
+        }
+
+        .input-wrapper select {
+            cursor: pointer;
+        }
+
+        /* Styling the dropdown options for better visibility */
+        .input-wrapper select option {
+            background-color: #222222;
+            color: #ffffff;
+        }
+
+        .input-wrapper select option[value=""][disabled] {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .input-wrapper input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            border-color: var(--accent-green);
+            background-color: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(59, 107, 63, 0.3);
+        }
+
+        .input-wrapper .fa-chevron-down {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            font-size: 12px;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-family);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 12px rgba(59, 107, 63, 0.3);
+            margin-top: 6px;
+        }
+
+        .btn-register:hover {
+            background-color: #2D5230;
+            box-shadow: 0 6px 16px rgba(59, 107, 63, 0.4);
+        }
+
+        .btn-register:active {
+            transform: scale(0.98);
+        }
+
+        .login-prompt {
+            text-align: center;
+            font-size: 14px;
+            color: #dddddd;
+            margin-top: 4px;
+        }
+
+        .login-prompt a {
+            color: var(--accent-orange);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+            transition: color 0.3s;
+        }
+
+        .login-prompt a:hover {
+            color: #CC7A29;
+            text-decoration: underline;
+        }
+
+        /* Adjustments for smaller screens */
+        @media (max-width: 480px) {
+            .input-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-container">
+        <div class="logo-container">
+            <img src="Pic/0Logo.png" alt="DharaVeda Logo">
+        </div>
+
+        <div class="header">
+            <h1>Create an Account</h1>
+            <p>Join the DharaVeda community today</p>
+        </div>
+
+        <form class="form-group" id="register-form">
+            <div class="input-wrapper">
+                <i class="fa-regular fa-user prefix-icon"></i>
+                <input type="text" placeholder="Full Name" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fa-solid fa-phone prefix-icon"></i>
+                <input type="text" placeholder="Email or Phone Number" required>
+            </div>
+
+            <div class="input-row">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-calendar-days prefix-icon"></i>
+                    <input type="number" placeholder="Age" min="10" max="120" required>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-venus-mars prefix-icon"></i>
+                    <select required>
+                        <option value="" disabled selected>Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-map-location-dot prefix-icon"></i>
+                    <select required>
+                        <option value="" disabled selected>Select State</option>
+                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                        <option value="Assam">Assam</option>
+                        <option value="Bihar">Bihar</option>
+                        <option value="Chhattisgarh">Chhattisgarh</option>
+                        <option value="Goa">Goa</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Haryana">Haryana</option>
+                        <option value="Himachal Pradesh">Himachal Pradesh</option>
+                        <option value="Jharkhand">Jharkhand</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Manipur">Manipur</option>
+                        <option value="Meghalaya">Meghalaya</option>
+                        <option value="Mizoram">Mizoram</option>
+                        <option value="Nagaland">Nagaland</option>
+                        <option value="Odisha">Odisha</option>
+                        <option value="Punjab">Punjab</option>
+                        <option value="Rajasthan">Rajasthan</option>
+                        <option value="Sikkim">Sikkim</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="Tripura">Tripura</option>
+                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                        <option value="Uttarakhand">Uttarakhand</option>
+                        <option value="West Bengal">West Bengal</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-location-crosshairs prefix-icon"></i>
+                    <input type="text" placeholder="District" required>
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock prefix-icon"></i>
+                <input type="password" placeholder="Password" required>
+            </div>
+
+            <button type="submit" class="btn-register">
+                Sign Up <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="login-prompt">
+            Already have an account? <a href="login.html">Sign In</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailParam = urlParams.get('email');
+            
+            // Find the Email/Phone input
+            const inputs = document.querySelectorAll('input');
+            let contactInput;
+            for (let input of inputs) {
+                if (input.placeholder === 'Email or Phone Number') {
+                    contactInput = input;
+                    break;
+                }
+            }
+            
+            if (emailParam && contactInput) {
+                contactInput.value = emailParam;
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get all fields based on placeholders or select tags
+            const inputs = document.querySelectorAll('input');
+            const selects = document.querySelectorAll('select');
+            
+            let fullName, contact, age, district, password, gender, state;
+            
+            for (let input of inputs) {
+                if (input.placeholder === 'Full Name') fullName = input.value;
+                if (input.placeholder === 'Email or Phone Number') contact = input.value;
+                if (input.placeholder === 'Age') age = input.value;
+                if (input.placeholder === 'District') district = input.value;
+                if (input.placeholder === 'Password') password = input.value;
+            }
+            
+            gender = selects[0].value;
+            state = selects[1].value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        full_name: fullName,
+                        contact: contact,
+                        age: age,
+                        gender: gender,
+                        state: state,
+                        district: district,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.location.href = `login.html?email=${encodeURIComponent(contact)}`;
+                } else {
+                    alert(data.error || 'Registration failed.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during registration. Make sure the backend is running.');
+            }
+        });
+    </script>
+</body>
+</html>
