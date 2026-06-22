@@ -169,7 +169,7 @@ def login():
             SUPABASE_URL,
             headers=headers,
             params={
-                "select": "Name,Email_Phone,Password",
+                "select": "Name,Email_Phone,Password,District,State",
                 "Email_Phone": f"eq.{email_phone}"
             }
         )
@@ -193,13 +193,24 @@ def login():
                     token = jwt.encode({
                         "name": user.get("Name", "User"),
                         "email_phone": email_phone,
+                        "district": user.get("District", ""),
+                        "state": user.get("State", ""),
                         "exp": datetime.now(timezone.utc) + timedelta(days=7)
                     }, JWT_SECRET, algorithm="HS256")
                     
                     if isinstance(token, bytes):
                         token = token.decode('utf-8')
                     
-                    return jsonify({"success": True, "message": "Login successful", "token": token, "user": {"name": user.get("Name", "User")}}), 200
+                    return jsonify({
+                        "success": True, 
+                        "message": "Login successful", 
+                        "token": token, 
+                        "user": {
+                            "name": user.get("Name", "User"),
+                            "district": user.get("District", ""),
+                            "state": user.get("State", "")
+                        }
+                    }), 200
                 else:
                     return jsonify({"success": False, "message": "Invalid password"}), 401
             else:

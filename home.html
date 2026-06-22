@@ -602,22 +602,22 @@
     <!-- Weather Widget -->
     <div class="weather-widget">
         <div class="weather-left">
-            <i class="fa-solid fa-cloud-sun weather-icon"></i>
+            <i id="weather-icon" class="fa-solid fa-cloud-sun weather-icon"></i>
             <div class="weather-temp">
-                <h2>28°C</h2>
-                <p>Partly Cloudy</p>
+                <h2 id="weather-temp">--°C</h2>
+                <p id="weather-desc">Loading...</p>
             </div>
         </div>
         <div class="weather-details">
-            <div><i class="fa-solid fa-location-dot"></i> Panipat, Haryana</div>
-            <div><i class="fa-solid fa-droplet" style="color: #64B5F6;"></i> Humidity 72%</div>
-            <div><i class="fa-solid fa-wind"></i> Wind 8 km/h</div>
+            <div><i class="fa-solid fa-location-dot"></i> <span id="weather-location">Loading...</span></div>
+            <div><i class="fa-solid fa-droplet" style="color: #64B5F6;"></i> Humidity <span id="weather-humidity">--%</span></div>
+            <div><i class="fa-solid fa-wind"></i> Wind <span id="weather-wind">-- km/h</span></div>
         </div>
     </div>
 
     <!-- Welcome Section -->
     <div class="welcome-section">
-        <h1>Good <span style="color: var(--accent-orange);">Morning, <span id="user-name">Guest</span></span> 👋</h1>
+        <h1>Good <span style="color: var(--accent-orange);"><span id="greeting-text">Morning</span>, <span id="user-name">Guest</span></span></h1>
         <p>Welcome to <strong>DharaVeda</strong> </p>
     </div>
 
@@ -826,6 +826,17 @@
             }
         }
 
+        // Dynamic Greeting Logic
+        const hour = new Date().getHours();
+        const greetingText = document.getElementById('greeting-text');
+        if (hour < 12) {
+            greetingText.textContent = 'Morning';
+        } else if (hour < 17) {
+            greetingText.textContent = 'Afternoon';
+        } else {
+            greetingText.textContent = 'Evening';
+        }
+
         // Dropdown Menu Logic
         const menuBtn = document.getElementById('menu-btn');
         const dropdownMenu = document.getElementById('dropdown-menu');
@@ -847,6 +858,101 @@
             localStorage.removeItem('dharaveda_user');
             window.location.href = 'login.html';
         });
+
+        // Weather Fetching Logic
+        const weatherApiKey = 'a4a671880d4e7010630acb53da056a1c';
+
+        function updateWeatherByLocation(district, state) {
+            let query = 'New Delhi,IN';
+            if (district && state) {
+                query = `${district},${state},IN`;
+            } else if (district) {
+                query = `${district},IN`;
+            }
+            
+            // Step 1: Get coordinates from district and state
+            const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${weatherApiKey}`;
+            
+            fetch(geoUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Geocoding data not found for " + query);
+                    return response.json();
+                })
+                .then(geoData => {
+                    if (!geoData || geoData.length === 0) {
+                        throw new Error("No coordinates found for " + query);
+                    }
+                    
+                    let lat = geoData[0].lat;
+                    let lon = geoData[0].lon;
+                    
+                    // If multiple results and we have a state, try to find the exact match
+                    if (state && geoData.length > 1) {
+                        const targetState = state.toLowerCase();
+                        const match = geoData.find(loc => loc.state && loc.state.toLowerCase().includes(targetState));
+                        if (match) {
+                            lat = match.lat;
+                            lon = match.lon;
+                        }
+                    }
+
+                    // Step 2: Fetch weather using lat and lon
+                    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&units=metric`;
+                    return fetch(weatherUrl);
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Weather data not found");
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('weather-temp').textContent = Math.round(data.main.temp) + '°C';
+                    document.getElementById('weather-desc').textContent = data.weather[0].main;
+                    document.getElementById('weather-location').textContent = data.name;
+                    document.getElementById('weather-humidity').textContent = data.main.humidity + '%';
+                    document.getElementById('weather-wind').textContent = Math.round(data.wind.speed * 3.6) + ' km/h';
+                    
+                    // Update icon based on weather condition
+                    const iconMap = {
+                        'Clear': 'fa-sun',
+                        'Clouds': 'fa-cloud',
+                        'Rain': 'fa-cloud-rain',
+                        'Drizzle': 'fa-cloud-rain',
+                        'Thunderstorm': 'fa-bolt',
+                        'Snow': 'fa-snowflake',
+                        'Mist': 'fa-smog',
+                        'Fog': 'fa-smog',
+                        'Haze': 'fa-smog'
+                    };
+                    const weatherMain = data.weather[0].main;
+                    const iconClass = iconMap[weatherMain] || 'fa-cloud-sun';
+                    const iconEl = document.getElementById('weather-icon');
+                    iconEl.className = `fa-solid ${iconClass} weather-icon`;
+                })
+                .catch(err => {
+                    console.error("Error fetching weather:", err);
+                    if (district !== 'New Delhi') {
+                        // Fallback to default if location fails
+                        updateWeatherByLocation('New Delhi', '');
+                    }
+                });
+        }
+
+        // Get district and state from user data
+        let userDistrict = 'New Delhi';
+        let userState = '';
+        if (userDataStr) {
+            try {
+                const userData = JSON.parse(userDataStr);
+                if (userData && userData.district) {
+                    userDistrict = userData.district;
+                }
+                if (userData && userData.state) {
+                    userState = userData.state;
+                }
+            } catch (e) {}
+        }
+
+        updateWeatherByLocation(userDistrict, userState);
     });
 </script>
 
