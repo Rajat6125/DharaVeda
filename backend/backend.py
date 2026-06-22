@@ -4,6 +4,10 @@ import requests
 import os
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+from datetime import datetime, timedelta, timezone
+import joblib
+import numpy as np
 
 load_dotenv()
 
@@ -13,8 +17,16 @@ CORS(app)
 # Supabase Configuration
 SUPABASE_URL = "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/User_database"
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+JWT_SECRET = os.getenv("JWT_SECRET", "dharaveda-secret-key-2026")
 
 print("SUPABASE_KEY Loaded:", "YES" if SUPABASE_KEY else "NO")
+
+model = joblib.load("crop_model.pkl")
+label_encoder = joblib.load("label_encoder.pkl")
+
+@app.route("/")
+def home():
+    return "Crop Recommendation API is running"
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -118,8 +130,12 @@ def verify():
         
         # Check if user exists
         response = requests.get(
-            f"{SUPABASE_URL}?select=Email_Phone&Email_Phone=eq.{email_phone}",
-            headers=headers
+            SUPABASE_URL,
+            headers=headers,
+            params={
+                "select": "Email_Phone",
+                "Email_Phone": f"eq.{email_phone}"
+            }
         )
         
         if response.status_code == 200:
@@ -150,8 +166,12 @@ def login():
         }
         
         response = requests.get(
-            f"{SUPABASE_URL}?select=Email_Phone,Password&Email_Phone=eq.{email_phone}",
-            headers=headers
+            SUPABASE_URL,
+            headers=headers,
+            params={
+                "select": "Name,Email_Phone,Password",
+                "Email_Phone": f"eq.{email_phone}"
+            }
         )
         
         if response.status_code == 200:
@@ -169,7 +189,17 @@ def login():
                     pass
                 
                 if is_valid or db_password == password:
-                    return jsonify({"success": True, "message": "Login successful"}), 200
+                    # Generate JWT
+                    token = jwt.encode({
+                        "name": user.get("Name", "User"),
+                        "email_phone": email_phone,
+                        "exp": datetime.now(timezone.utc) + timedelta(days=7)
+                    }, JWT_SECRET, algorithm="HS256")
+                    
+                    if isinstance(token, bytes):
+                        token = token.decode('utf-8')
+                    
+                    return jsonify({"success": True, "message": "Login successful", "token": token, "user": {"name": user.get("Name", "User")}}), 200
                 else:
                     return jsonify({"success": False, "message": "Invalid password"}), 401
             else:
@@ -179,6 +209,43 @@ def login():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/crop_recommend", methods=["POST"])
+def predict():
+    try:
+        # Accept both JSON (from fetch/axios) and Form Data (from standard HTML forms)
+        data = request.get_json(silent=True) or request.form
+
+        # Safely extract values and convert them to float (handling form string inputs)
+        features = np.array([[
+            float(data.get("N") or 0),
+            float(data.get("P") or 0),
+            float(data.get("K") or 0),
+            float(data.get("temperature") or 0),
+            float(data.get("humidity") or 0),
+            float(data.get("ph") or 0),
+            float(data.get("rainfall") or 0)
+        ]])
+
+        # Predict best crop
+        predicted_id = model.predict(features)[0]
+        predicted_crop = label_encoder.inverse_transform([predicted_id])[0]
+
+        # Confidence
+        probabilities = model.predict_proba(features)[0]
+        confidence = float(probabilities[predicted_id])
+
+        return jsonify({
+            "success": True,
+            "crop": predicted_crop,
+            "confidence": round(confidence * 100, 2)-10
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
