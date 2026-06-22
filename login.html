@@ -300,7 +300,11 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    window.location.href = 'index.html';
+                    if (data.token) {
+                        localStorage.setItem('dharaveda_token', data.token);
+                        localStorage.setItem('dharaveda_user', JSON.stringify(data.user));
+                    }
+                    window.location.href = 'home.html';
                 } else {
                     alert(data.message || 'Login failed. Please check your credentials.');
                 }
