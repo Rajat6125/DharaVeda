@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 import requests
 import os
+import json
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -221,6 +222,170 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/ai_chat", methods=["POST"])
+def ai_chat():
+    """
+    Proxy endpoint for OpenRouter LLM calls.
+    Accepts: { "messages": [...] }
+    Returns: { "success": True, "reply": "..." }
+    Tries multiple free models in order until one succeeds.
+    """
+    FREE_MODELS = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-3-27b-it:free",
+        "qwen/qwen3-235b-a22b:free",
+        "nousresearch/hermes-3-llama-3.1-405b:free",
+        "mistralai/mistral-small-24b-instruct-2501",
+    ]
+
+    try:
+        data = request.get_json()
+        if not data or "messages" not in data:
+            return jsonify({"success": False, "error": "messages array is required"}), 400
+
+        messages = data["messages"]
+        api_key = os.getenv("OPENROUTER_API_KEY", "")
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://dharaveda.app",
+            "X-Title": "DharaVeda"
+        }
+
+        last_error = "Unknown error"
+        for model_id in FREE_MODELS:
+            payload = {
+                "model": model_id,
+                "messages": messages,
+                "max_tokens": 800,
+                "stream": False
+            }
+            try:
+                resp = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=30
+                )
+                if resp.status_code == 429:
+                    last_error = f"Rate limited on {model_id}"
+                    continue  # try next model
+                if not resp.ok:
+                    last_error = f"Error {resp.status_code} on {model_id}: {resp.text[:200]}"
+                    continue
+                result = resp.json()
+                reply = result["choices"][0]["message"]["content"]
+                return jsonify({"success": True, "reply": reply, "model": model_id})
+            except Exception as model_err:
+                last_error = str(model_err)
+                continue
+
+        return jsonify({"success": False, "error": f"All models failed. Last error: {last_error}"}), 503
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/ai_chat_stream", methods=["POST"])
+def ai_chat_stream():
+    """
+    SSE streaming endpoint for OpenRouter LLM calls.
+    Accepts: { "messages": [...] }
+    Streams tokens as SSE: data: <token>\n\n
+    Always ends with: data: [DONE]\n\n
+    Tries multiple free models in order, falling back on 429 or errors.
+    """
+    FREE_MODELS = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-3-27b-it:free",
+        "qwen/qwen3-235b-a22b:free",
+        "nousresearch/hermes-3-llama-3.1-405b:free",
+        "mistralai/mistral-small-24b-instruct-2501",
+    ]
+
+    data = request.get_json()
+    if not data or "messages" not in data:
+        def error_gen():
+            yield b"data: [ERROR] messages array is required\n\n"
+            yield b"data: [DONE]\n\n"
+        return Response(stream_with_context(error_gen()), mimetype="text/event-stream",
+                        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    messages = data["messages"]
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://dharaveda.app",
+        "X-Title": "DharaVeda"
+    }
+
+    def generate():
+        last_error = "Unknown error"
+        for model_id in FREE_MODELS:
+            payload = {
+                "model": model_id,
+                "messages": messages,
+                "max_tokens": 700,
+                "stream": True
+            }
+            try:
+                resp = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=60,
+                    stream=True
+                )
+                if resp.status_code == 429:
+                    last_error = f"Rate limited on {model_id}"
+                    continue
+                if not resp.ok:
+                    last_error = f"Error {resp.status_code} on {model_id}: {resp.text[:200]}"
+                    continue
+
+                # Stream the response tokens
+                for line in resp.iter_lines():
+                    if not line:
+                        continue
+                    line = line.decode("utf-8") if isinstance(line, bytes) else line
+                    if line.startswith("data: "):
+                        chunk_str = line[6:]
+                        if chunk_str.strip() == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(chunk_str)
+                            delta = chunk.get("choices", [{}])[0].get("delta", {})
+                            token = delta.get("content", "")
+                            if token:
+                                yield f"data: {token}\n\n".encode("utf-8")
+                        except (json.JSONDecodeError, IndexError, KeyError):
+                            continue
+
+                # Successfully streamed — done
+                yield b"data: [DONE]\n\n"
+                return
+
+            except Exception as model_err:
+                last_error = str(model_err)
+                continue
+
+        # All models failed
+        yield f"data: [ERROR] All models failed. Last error: {last_error}\n\n".encode("utf-8")
+        yield b"data: [DONE]\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
 @app.route("/api/crop_recommend", methods=["POST"])
 def predict():
     try:
@@ -228,6 +393,7 @@ def predict():
         data = request.get_json(silent=True) or request.form
 
         # Safely extract values and convert them to float (handling form string inputs)
+        # Ensure order matches standard Kaggle crop dataset: N, P, K, temperature, humidity, ph, rainfall
         features = np.array([[
             float(data.get("N") or 0),
             float(data.get("P") or 0),
