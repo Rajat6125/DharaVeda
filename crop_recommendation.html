@@ -137,6 +137,69 @@
         .rec-data-separator { width: 1px; background: rgba(0,0,0,0.03); }
         .rec-data-item { font-size: 10px; color: #555; display: flex; justify-content: space-between; align-items: center; gap: 4px; white-space: nowrap; }
         .rec-data-item span { font-weight: 700; color: #222; white-space: nowrap; }
+
+        /* AI Chat input bar */
+        #chat-input-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px 14px;
+            background: rgba(255,255,255,0.96);
+            border-top: 1px solid rgba(59,107,63,0.10);
+            flex-shrink: 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+        }
+        #chat-input-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f6f1;
+            border: 1.5px solid rgba(59,107,63,0.18);
+            border-radius: 28px;
+            padding: 8px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #chat-input-wrap:focus-within {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(59,107,63,0.10);
+        }
+        #chat-input-wrap .chat-leaf-icon {
+            font-size: 14px;
+            color: var(--accent-green);
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+        #chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-family: var(--font-family);
+            outline: none;
+            color: var(--text-primary);
+            min-width: 0;
+        }
+        #chat-input::placeholder { color: #aaa; }
+        #chat-input:disabled { cursor: not-allowed; }
+        #chat-send-btn {
+            width: 42px; height: 42px;
+            border-radius: 50%; border: none;
+            background: var(--accent-green);
+            color: white; font-size: 15px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(59,107,63,0.3);
+            flex-shrink: 0;
+        }
+        #chat-send-btn:hover:not(:disabled) { background: #2D5230; box-shadow: 0 4px 12px rgba(59,107,63,0.4); }
+        #chat-send-btn:active:not(:disabled) { transform: scale(0.92); }
+        #chat-send-btn:disabled { background: #c8ddc9; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+        #chat-input-bar.locked #chat-input-wrap {
+            background: #f5f5f5;
+            border-color: rgba(0,0,0,0.08);
+        }
+        #chat-input-bar.locked .chat-leaf-icon { opacity: 0.3; }
     </style>
 </head>
 <body>
@@ -158,8 +221,8 @@
     </div>
     
     <div class="main-content">
-        <!-- Chat Container -->
-        <div id="chat-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+        <!-- Pre-recommendation bot greeting messages -->
+        <div id="chat-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
 
         <!-- Form Card -->
         <div class="form-card" id="input-form-card" style="display: none;">
@@ -181,8 +244,22 @@
             </button>
         </div>
 
-        <!-- Result Container -->
+        <!-- Result Card -->
         <div id="result-container" style="display: none; width: 100%;"></div>
+
+        <!-- Post-recommendation AI chat bubbles (appear below the result card) -->
+        <div id="ai-chat-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px;"></div>
+    </div>
+
+    <!-- Chat input bar — always visible, locked until recommendation -->
+    <div id="chat-input-bar" class="locked">
+        <div id="chat-input-wrap">
+            <i class="fa-solid fa-seedling chat-leaf-icon"></i>
+            <input id="chat-input" type="text" placeholder="Ask about your crop…" autocomplete="off" disabled>
+        </div>
+        <button id="chat-send-btn" onclick="sendChatMessage()" disabled>
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
     </div>
 </div>
 
@@ -209,7 +286,9 @@
 
     let lastSender = null;
 
-    function addBotMessage() {
+    // container: 'pre' = greeting chat, 'post' = AI chat after recommendation
+    function addBotMessage(container) {
+        const containerId = container === 'post' ? 'ai-chat-container' : 'chat-container';
         const showAvatar = lastSender !== 'bot';
         lastSender = 'bot';
 
@@ -222,15 +301,16 @@
 
         msgDiv.innerHTML = `
             ${avatarHtml}
-            <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-left-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.4; color: var(--text-primary); max-width: 85%;"></div>
+            <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-left-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
         `;
-        document.getElementById('chat-container').appendChild(msgDiv);
+        document.getElementById(containerId).appendChild(msgDiv);
         const mainContent = document.querySelector('.main-content');
         mainContent.scrollTop = mainContent.scrollHeight;
         return msgDiv.querySelector('.msg-bubble');
     }
 
     function addUserMessage(text) {
+        const containerId = chatState.fieldData ? 'ai-chat-container' : 'chat-container';
         const showAvatar = lastSender !== 'user';
         lastSender = 'user';
 
@@ -238,16 +318,16 @@
         msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; animation: fadeIn 0.3s ease;";
         
         const avatarHtml = showAvatar 
-            ? `<img src="Pic/user.png" onerror="this.src='Pic/Logo.png'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
+            ? `<img src="Pic/User.png" onerror="this.src='Pic/Logo.png'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
             : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
 
         msgDiv.innerHTML = `
-            <div class="msg-bubble" style="background: var(--accent-green); color: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.4; max-width: 85%;">
+            <div class="msg-bubble" style="background: var(--accent-green); color: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; max-width: 85%;">
                 ${text}
             </div>
             ${avatarHtml}
         `;
-        document.getElementById('chat-container').appendChild(msgDiv);
+        document.getElementById(containerId).appendChild(msgDiv);
         const mainContent = document.querySelector('.main-content');
         mainContent.scrollTop = mainContent.scrollHeight;
     }
@@ -276,7 +356,7 @@
         await streamText(bubble, "I am Kṣetrajña, your crop recommender.");
 
         const loading = addLoadingMessage();
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, 2000));
         loading.remove();
 
         bubble = addBotMessage();
@@ -401,10 +481,26 @@
                 </div>`;
             resultContainer.style.display = 'block';
 
+            // Store field data and trigger AI chat
+            chatState.fieldData = {
+                cropName: cropTitle,
+                confidence: score,
+                N: parseFloat(fN.value.trim()),
+                P: parseFloat(fP.value.trim()),
+                K: parseFloat(fK.value.trim()),
+                temperature: parseFloat(fTemp.value.trim()),
+                humidity: parseFloat(fHum.value.trim()),
+                ph: parseFloat(fPh.value.trim()),
+                rainfall: parseFloat(fRain.value.trim())
+            };
+
+            showChatInput();
+
             setTimeout(() => {
                 const mainContent = document.querySelector('.main-content');
                 mainContent.scrollTop = mainContent.scrollHeight;
-            }, 100);
+                triggerAutoJustification();
+            }, 200);
 
         } catch (err) {
             btn.disabled = false;
@@ -412,6 +508,231 @@
             alert('Could not connect to the backend. Make sure the Flask server is running on port 5000.');
         }
     }
+
+    // ─── Chat State ───────────────────────────────────────────────────────────
+    const chatState = {
+        history: [],
+        isStreaming: false,
+        fieldData: null
+    };
+
+    // ─── Build system prompt ─────────────────────────────────────────────────
+    function buildSystemPrompt(fd) {
+        return `You are Kṣetrajña, a friendly agricultural advisor in the DharaVeda platform. You are mid-conversation with a farmer about their field conditions.\n\n## Field Conditions & Top Recommendation\n- Best match: ${fd.cropName} (${fd.confidence}% model confidence)\n- N: ${fd.N} kg/ha | P: ${fd.P} kg/ha | K: ${fd.K} kg/ha\n- Temp: ${fd.temperature}°C | Humidity: ${fd.humidity}% | pH: ${fd.ph} | Rainfall: ${fd.rainfall}mm\n\n## Your Role\nYou are an advisor, not a dictator. The recommended crop is a data-driven suggestion, not a command. Always remember:\n1. NEVER introduce yourself or restart the session — you are already in an ongoing conversation.\n2. If the user says hello, thanks, or anything casual, acknowledge it warmly in one short sentence and stay on the farming topic.\n3. If the user asks about alternative crops, freely suggest 2-3 realistic alternatives that could work with their conditions. Explain briefly why each might or might not suit their field.\n4. You may explain why the recommended crop suits their conditions, but never push it or insist the user must grow it.\n5. Keep responses concise by default — 2-4 sentences for simple questions. For detailed questions (like "explain", "how to", "why", "what are all the steps", or requests for alternatives), give a thorough answer covering all relevant points. Never cut a detailed answer short just to be brief.\n6. Do NOT use markdown like **bold**, *italic*, or numbered lists. Write plain sentences only.\n7. Only discuss farming topics: crop choices, soil, nutrients, weather, fertiliser, yield, quality improvement. Politely decline anything unrelated in one sentence.`;
+    }
+
+    // ─── Convert markdown-lite to safe HTML (bold only, strip other markers) ──
+    function renderMarkdown(text) {
+        // Strip numbered list prefixes like "1. " at line start — keep the content
+        let out = text.replace(/^\d+\.\s+/gm, '');
+        // Convert **bold** → <strong>
+        out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Remove leftover single asterisks used as italics/bullets
+        out = out.replace(/\*([^*\n]+)\*/g, '$1');
+        out = out.replace(/^\*\s*/gm, '');
+        // Convert markdown headers (#, ##, ###) — just strip them
+        out = out.replace(/^#{1,3}\s*/gm, '');
+        // Trim leading/trailing whitespace per line
+        out = out.split('\n').map(l => l.trim()).filter(l => l).join(' ');
+        return out.trim();
+    }
+
+    // ─── Split text into sentence-length chunks ───────────────────────────────
+    function splitIntoChunks(text) {
+        const sentences = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
+        const chunks = [];
+        let current = '';
+        for (const s of sentences) {
+            current += s;
+            if (current.trim().length >= 60 || /[.!?]$/.test(current.trim())) {
+                const trimmed = current.trim();
+                if (trimmed) chunks.push(trimmed);
+                current = '';
+            }
+        }
+        if (current.trim()) chunks.push(current.trim());
+        return chunks.length ? chunks : [text.trim()];
+    }
+
+    // ─── Stream SSE response into multiple sentence bubbles ──────────────────
+    async function streamAIResponse(messages) {
+        chatState.isStreaming = true;
+        const sendBtn = document.getElementById('chat-send-btn');
+        if (sendBtn) sendBtn.disabled = true;
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+
+        let fullReply = '';
+
+        // ── Create first bubble with loading gif as avatar (waiting state) ──
+        lastSender = null; // force avatar to show on first AI bubble
+        const containerId = 'ai-chat-container';
+        const firstMsgDiv = document.createElement('div');
+        firstMsgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+        firstMsgDiv.innerHTML = `
+            <img id="ai-thinking-avatar" src="Pic/loading.gif" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
+            <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
+        `;
+        document.getElementById(containerId).appendChild(firstMsgDiv);
+        document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+        let activeBubble = firstMsgDiv.querySelector('.msg-bubble');
+        lastSender = 'bot';
+
+        let avatarSwapped = false;
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/ai_chat_stream', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ messages })
+            });
+
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let tokenBuffer = '';
+
+            outer: while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                while (buffer.includes('\n')) {
+                    const idx = buffer.indexOf('\n');
+                    const line = buffer.substring(0, idx).trim();
+                    buffer = buffer.substring(idx + 1);
+
+                    if (line.startsWith('data: ')) {
+                        const token = line.substring(6);
+                        if (token === '[DONE]') break outer;
+                        if (token.startsWith('[ERROR]')) {
+                            activeBubble.textContent = 'Sorry, the AI service is currently unavailable. Please try again later.';
+                            break outer;
+                        }
+
+                        // Swap loading gif → crop icon on first real token
+                        if (!avatarSwapped) {
+                            avatarSwapped = true;
+                            const thinkingAvatar = document.getElementById('ai-thinking-avatar');
+                            if (thinkingAvatar) {
+                                thinkingAvatar.src = 'Pic/Crop_rmd.png';
+                                thinkingAvatar.removeAttribute('id');
+                            }
+                        }
+
+                        fullReply += token;
+                        tokenBuffer += token;
+
+                        const hasSentenceEnd = /[.!?\n]/.test(tokenBuffer);
+                        const isLongEnough = tokenBuffer.trim().length >= 60;
+
+                        if (hasSentenceEnd && isLongEnough) {
+                            const breakMatch = tokenBuffer.match(/^([\s\S]*[.!?\n])\s*/);
+                            if (breakMatch) {
+                                const chunkText = renderMarkdown(breakMatch[1]);
+                                const remainder = tokenBuffer.substring(breakMatch[0].length);
+
+                                activeBubble.innerHTML = chunkText;
+                                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+
+                                await new Promise(r => setTimeout(r, 200));
+
+                                // New bubble — no avatar (same sender streak)
+                                const nextDiv = document.createElement('div');
+                                nextDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+                                nextDiv.innerHTML = `
+                                    <div style="width: 32px; height: 32px; flex-shrink: 0;"></div>
+                                    <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
+                                `;
+                                document.getElementById(containerId).appendChild(nextDiv);
+                                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+                                activeBubble = nextDiv.querySelector('.msg-bubble');
+                                tokenBuffer = remainder;
+                            } else {
+                                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                            }
+                        } else {
+                            activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                            document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+                        }
+                    }
+                }
+            }
+
+            // Flush remainder
+            if (tokenBuffer.trim()) {
+                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+            } else if (!activeBubble.innerHTML.trim()) {
+                activeBubble.closest('div').remove();
+            }
+
+        } catch (err) {
+            activeBubble.textContent = 'Sorry, I couldn\'t connect. Please try again.';
+        } finally {
+            chatState.isStreaming = false;
+            if (sendBtn) sendBtn.disabled = false;
+            const chatInput = document.getElementById('chat-input');
+            if (chatInput) chatInput.focus();
+        }
+        return fullReply;
+    }
+
+    // ─── Show chat input bar ─────────────────────────────────────────────────
+    function showChatInput() {
+        const bar = document.getElementById('chat-input-bar');
+        const input = document.getElementById('chat-input');
+        const btn = document.getElementById('chat-send-btn');
+        if (bar) bar.classList.remove('locked');
+        if (input) { input.disabled = false; input.placeholder = 'Ask about your crop…'; input.focus(); }
+        if (btn) btn.disabled = false;
+    }
+
+    // ─── Auto-justification after recommendation ─────────────────────────────
+    async function triggerAutoJustification() {
+        if (!chatState.fieldData || chatState.isStreaming) return;
+
+        chatState.history = [
+            { role: 'system', content: buildSystemPrompt(chatState.fieldData) },
+            { role: 'user', content: `Briefly explain why ${chatState.fieldData.cropName} suits my soil and climate. Plain text only, no bullet points or bold formatting, 2-4 sentences.` }
+        ];
+
+        const reply = await streamAIResponse(chatState.history);
+        if (reply) {
+            chatState.history.push({ role: 'assistant', content: reply });
+        }
+    }
+
+    // ─── Send user follow-up message ─────────────────────────────────────────
+    async function sendChatMessage() {
+        if (chatState.isStreaming) return;
+
+        const chatInput = document.getElementById('chat-input');
+        const text = chatInput ? chatInput.value.trim() : '';
+        if (!text) return;
+
+        addUserMessage(text);
+        chatInput.value = '';
+
+        chatState.history.push({ role: 'user', content: text });
+
+        const reply = await streamAIResponse(chatState.history);
+        if (reply) {
+            chatState.history.push({ role: 'assistant', content: reply });
+        }
+    }
+
+    // ─── Enter key support ───────────────────────────────────────────────────
+    document.getElementById('chat-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
 </script>
 </body>
 </html>
