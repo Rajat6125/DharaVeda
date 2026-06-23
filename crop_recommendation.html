@@ -264,6 +264,10 @@
 </div>
 
 <script>
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : 'https://dharaveda.onrender.com';
+
     const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token');
 
     function getUserName() {
@@ -400,7 +404,7 @@
             const headers = { 'Content-Type': 'application/json' };
             if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
 
-            const res = await fetch('http://127.0.0.1:5000/api/crop_recommend', {
+            const res = await fetch(`${API_BASE}/api/crop_recommend`, {
                 method: 'POST', headers,
                 body: JSON.stringify({ 
                     N: fN.value.trim(), 
@@ -582,7 +586,7 @@
         let avatarSwapped = false;
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/ai_chat_stream', {
+            const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ messages })

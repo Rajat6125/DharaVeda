@@ -343,6 +343,10 @@
     </div>
 
     <script>
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://dharaveda.onrender.com';
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const emailParam = urlParams.get('email');
@@ -383,7 +387,7 @@
             state = selects[1].value;
             
             try {
-                const response = await fetch('http://localhost:5000/api/register', {
+                const response = await fetch(`${API_BASE}/api/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
