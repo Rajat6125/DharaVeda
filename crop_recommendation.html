@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DharaVeda - Crop Recommendation</title>
+    <link rel="icon" href="Pic/0Logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --text-primary: #1E2A1F;
+            --text-secondary: #555555;
+            --accent-green: #3B6B3F;
+            --light-green: #E8F5E9;
+            --font-family: 'Outfit', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body {
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f4f4f4;
+        }
+        body::before {
+            content:'';
+            position:fixed; top:0; left:0;
+            width:100vw; height:100vh;
+            background-image: url('Pic/Crop.jpg');
+            background-size:cover; background-position:center;
+            z-index:-1;
+        }
+        .app-container {
+            width:100%; max-width:480px; height:100vh;
+            background: rgba(255, 255, 255, 0.34);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(12px);
+            position:relative; display:flex; flex-direction:column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        /* Header */
+        .top-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 20px;
+            background: rgba(255,255,255,0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            z-index:10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-bottom-left-radius:20px; border-bottom-right-radius:20px;
+        }
+        .header-left { display:flex; align-items:center; gap:12px; }
+        .header-info h2 { font-size:18px; font-weight:700; color:var(--accent-green); }
+        .header-info p { font-size:12px; color:var(--text-secondary); }
+        .header-right { display:flex; gap:16px; }
+        .header-btn { background:none; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; }
+        
+        .main-content {
+            flex:1; overflow-y:auto; padding:20px;
+            display:flex; flex-direction:column; gap:20px; scroll-behavior:smooth;
+        }
+        .main-content::-webkit-scrollbar { width:6px; }
+        .main-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
+        
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        
+        /* Form Card */
+        .form-card {
+            background:rgba(240,248,241,0.95); border-radius:20px; padding:20px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.5);
+            animation:fadeIn 0.3s ease; width:100%;
+        }
+        .form-header { margin-bottom:16px; }
+        .form-header h3 { font-size:16px; color:var(--accent-green); display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+        .form-header p { font-size:12px; color:var(--text-secondary); }
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+        .input-group { display:flex; flex-direction:column; gap:4px; }
+        .input-group label { font-size:11px; font-weight:500; color:var(--text-secondary); }
+        .input-group input {
+            padding:10px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);
+            background:white; font-size:12px; font-family:var(--font-family); outline:none; transition:all 0.2s;
+        }
+        .input-group input:focus { border-color:var(--accent-green); box-shadow:0 0 0 2px rgba(59,107,63,0.1); }
+        .submit-btn {
+            width:100%; background:var(--accent-green); color:white; border:none;
+            padding:12px; border-radius:12px; font-size:14px; font-weight:600;
+            font-family:var(--font-family); cursor:pointer;
+            display:flex; justify-content:center; align-items:center; gap:8px; transition:background 0.2s;
+        }
+        .submit-btn:hover { background:#2D5230; }
+        .submit-btn:disabled { background:#a5cda8; cursor:not-allowed; }
+        
+        /* Recommendation Card (Mockup Match) */
+        .rec-card {
+            background: #fbfdfb; border-radius: 16px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.06);
+            width: 100%; margin: 0 auto; animation: fadeIn 0.4s ease; box-sizing: border-box;
+        }
+        .rec-header-new { margin-bottom: 20px; }
+        .rec-title {
+            font-size: 18px; font-weight: 800; color: #2e6030;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+        }
+        .rec-subtitle { font-size: 12px; color: #666; line-height: 1.4; }
+        
+        .rec-content { display: flex; gap: 20px; }
+        .rec-img-box {
+            flex: 0 0 40%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); align-self: flex-start;
+        }
+        .rec-img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        .rec-info-box { flex: 1; display: flex; flex-direction: column; }
+        .rec-crop-label { font-size: 11px; color: #666; margin-bottom: 4px; font-weight: 500; }
+        .rec-crop-title { font-size: 24px; font-weight: 800; color: #2e6030; margin-bottom: 12px; }
+        
+        .rec-confidence-bar {
+            background: #e9ecef; border-radius: 12px; height: 16px;
+            position: relative; margin-bottom: 16px; overflow: hidden;
+        }
+        .rec-confidence-fill {
+            height: 100%; border-radius: 12px; transition: width 1s ease;
+        }
+        .rec-confidence-text {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            font-size: 10.5px; font-weight: 800;
+        }
+        
+        .rec-divider { border: none; border-top: 1px solid rgba(0,0,0,0.03); margin-bottom: 16px; }
+        
+        .rec-data-grid { display: flex; gap: 12px; }
+        .rec-data-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .rec-data-separator { width: 1px; background: rgba(0,0,0,0.03); }
+        .rec-data-item { font-size: 10px; color: #555; display: flex; justify-content: space-between; align-items: center; gap: 4px; white-space: nowrap; }
+        .rec-data-item span { font-weight: 700; color: #222; white-space: nowrap; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-header">
+        <div class="header-left">
+            <button class="header-btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="Pic/Crop_rmd.png" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                <div class="header-info">
+                    <h2>Kṣetrajña</h2>
+                    <p>DharaVeda's Crop recommendation system</p>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Chat Container -->
+        <div id="chat-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+
+        <!-- Form Card -->
+        <div class="form-card" id="input-form-card" style="display: none;">
+            <div class="form-header">
+                <h3>🌾 Enter Your Field Details</h3>
+                <p>Provide accurate information for the best recommendation</p>
+            </div>
+            <div class="form-grid">
+                <div class="input-group"><label>Nitrogen (N) kg/ha</label><input type="number" id="f-n" placeholder="e.g., 90" min="0" max="200"></div>
+                <div class="input-group"><label>Phosphorus (P) kg/ha</label><input type="number" id="f-p" placeholder="e.g., 42" min="0" max="200"></div>
+                <div class="input-group"><label>Potassium (K) kg/ha</label><input type="number" id="f-k" placeholder="e.g., 43" min="0" max="250"></div>
+                <div class="input-group"><label>Temperature (°C)</label><input type="number" id="f-temp" placeholder="e.g., 20.8" min="0" max="60" step="0.1"></div>
+                <div class="input-group"><label>Humidity (%)</label><input type="number" id="f-hum" placeholder="e.g., 82.0" min="0" max="100" step="0.1"></div>
+                <div class="input-group"><label>Soil pH</label><input type="number" step="0.1" id="f-ph" placeholder="e.g., 6.5" min="0" max="14"></div>
+                <div class="input-group" style="grid-column:span 2"><label>Rainfall (mm)</label><input type="number" id="f-rain" placeholder="e.g., 202.9" min="0" max="500" step="0.1"></div>
+            </div>
+            <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+                <i class="fa-solid fa-paper-plane"></i> Get Recommendation
+            </button>
+        </div>
+
+        <!-- Result Container -->
+        <div id="result-container" style="display: none; width: 100%;"></div>
+    </div>
+</div>
+
+<script>
+    const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token');
+
+    function getUserName() {
+        if (!jwtToken) return 'User';
+        try {
+            const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+            return payload.name || payload.username || payload.sub || 'User';
+        } catch(e) {
+            return 'User';
+        }
+    }
+
+    async function streamText(element, text, speed = 30) {
+        element.innerHTML = '';
+        for (let i = 0; i < text.length; i++) {
+            element.innerHTML += text.charAt(i);
+            await new Promise(r => setTimeout(r, speed));
+        }
+    }
+
+    let lastSender = null;
+
+    function addBotMessage() {
+        const showAvatar = lastSender !== 'bot';
+        lastSender = 'bot';
+
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+        
+        const avatarHtml = showAvatar 
+            ? `<img src="Pic/Crop_rmd.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">` 
+            : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+
+        msgDiv.innerHTML = `
+            ${avatarHtml}
+            <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-left-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.4; color: var(--text-primary); max-width: 85%;"></div>
+        `;
+        document.getElementById('chat-container').appendChild(msgDiv);
+        const mainContent = document.querySelector('.main-content');
+        mainContent.scrollTop = mainContent.scrollHeight;
+        return msgDiv.querySelector('.msg-bubble');
+    }
+
+    function addUserMessage(text) {
+        const showAvatar = lastSender !== 'user';
+        lastSender = 'user';
+
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; animation: fadeIn 0.3s ease;";
+        
+        const avatarHtml = showAvatar 
+            ? `<img src="Pic/user.png" onerror="this.src='Pic/Logo.png'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
+            : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+
+        msgDiv.innerHTML = `
+            <div class="msg-bubble" style="background: var(--accent-green); color: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.4; max-width: 85%;">
+                ${text}
+            </div>
+            ${avatarHtml}
+        `;
+        document.getElementById('chat-container').appendChild(msgDiv);
+        const mainContent = document.querySelector('.main-content');
+        mainContent.scrollTop = mainContent.scrollHeight;
+    }
+
+    function addLoadingMessage() {
+        const msgDiv = document.createElement('div');
+        msgDiv.id = "loading-msg";
+        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+        msgDiv.innerHTML = `
+            <img src="Pic/loading.gif" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-left: -4px; margin-top: -2px;">
+        `;
+        document.getElementById('chat-container').appendChild(msgDiv);
+        const mainContent = document.querySelector('.main-content');
+        mainContent.scrollTop = mainContent.scrollHeight;
+        return msgDiv;
+    }
+
+    window.onload = async () => {
+        const userName = getUserName();
+        const formCard = document.getElementById('input-form-card');
+        
+        let bubble = addBotMessage();
+        await streamText(bubble, `Namaskaram ${userName}.`);
+
+        bubble = addBotMessage();
+        await streamText(bubble, "I am Kṣetrajña, your crop recommender.");
+
+        const loading = addLoadingMessage();
+        await new Promise(r => setTimeout(r, 4000));
+        loading.remove();
+
+        bubble = addBotMessage();
+        await streamText(bubble, "Please provide your soil details below so I can recommend the best crop for your field.");
+
+        formCard.style.display = 'block';
+        const mainContent = document.querySelector('.main-content');
+        mainContent.scrollTop = mainContent.scrollHeight;
+    };
+
+    async function submitForm() {
+        const fN    = document.getElementById('f-n');
+        const fP    = document.getElementById('f-p');
+        const fK    = document.getElementById('f-k');
+        const fTemp = document.getElementById('f-temp');
+        const fHum  = document.getElementById('f-hum');
+        const fPh   = document.getElementById('f-ph');
+        const fRain = document.getElementById('f-rain');
+
+        if (!fN.value || !fP.value || !fK.value || !fPh.value || !fRain.value || !fTemp.value || !fHum.value) {
+            alert("Please fill in all fields before submitting.");
+            return;
+        }
+
+        // Validate ranges
+        if (!fN.checkValidity() || !fP.checkValidity() || !fK.checkValidity() || !fTemp.checkValidity() || !fHum.checkValidity() || !fPh.checkValidity() || !fRain.checkValidity()) {
+            alert("Please enter values within the allowed realistic ranges.");
+            return;
+        }
+
+        addUserMessage("Here are my field details, please recommend a crop.");
+
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<img src="Pic/loading.gif" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"> Processing...';
+        
+        const resultContainer = document.getElementById('result-container');
+        resultContainer.style.display = 'none';
+
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+
+            const res = await fetch('http://127.0.0.1:5000/api/crop_recommend', {
+                method: 'POST', headers,
+                body: JSON.stringify({ 
+                    N: fN.value.trim(), 
+                    P: fP.value.trim(), 
+                    K: fK.value.trim(), 
+                    ph: fPh.value.trim(), 
+                    rainfall: fRain.value.trim(), 
+                    temperature: fTemp.value.trim(), 
+                    humidity: fHum.value.trim() 
+                })
+            });
+            const result = await res.json();
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Recommendation';
+
+            if (!result.success) {
+                alert(`Server error: ${result.error || 'Could not get recommendation'}`);
+                return;
+            }
+
+            const cropName  = result.crop;
+            const score     = result.confidence;
+
+            if (score < 40) {
+                resultContainer.innerHTML = `
+                    <div class="rec-card" style="padding: 30px 20px; text-align: center; border: 1px solid rgba(239, 83, 80, 0.3);">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; color: #ef5350; margin-bottom: 12px;"></i>
+                        <h2 style="color: #c62828; font-size: 20px; font-weight: 700; margin-bottom: 6px;">Unable to recommend crop</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Recheck Values</p>
+                    </div>`;
+                resultContainer.style.display = 'block';
+                return;
+            }
+
+            const cropTitle = cropName.charAt(0).toUpperCase() + cropName.slice(1).toLowerCase();
+            const cls       = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+
+            const barColor  = score >= 70 ? '#3b6b3f' : score >= 40 ? '#f57c00' : '#ef5350';
+            const textColor = score >= 85 ? 'white' : '#2e6030';
+
+            resultContainer.innerHTML = `
+                <div class="rec-card">
+                    <div class="rec-header-new">
+                        <div class="rec-title">
+                            <i class="fa-solid fa-seedling" style="color: #3b6b3f;"></i> Our Recommendation
+                        </div>
+                        <p class="rec-subtitle">Based on the provided field details, our AI model suggests the best crop for your field.</p>
+                    </div>
+                    <div class="rec-content">
+                        <div class="rec-img-box">
+                            <img src="Pic/Crops/Crop_${cropTitle}.jpg" onerror="this.src='Pic/Logo.png'" alt="${cropTitle}">
+                        </div>
+                        <div class="rec-info-box">
+                            <div class="rec-crop-label">Recommended Crop</div>
+                            <h2 class="rec-crop-title">${cropTitle}</h2>
+                            
+                            <div class="rec-confidence-bar">
+                                <div class="rec-confidence-fill" style="width: ${score}%; background: ${barColor};"></div>
+                                <span class="rec-confidence-text" style="color: ${textColor};">${score}%</span>
+                            </div>
+                            
+                            <hr class="rec-divider">
+                            
+                            <div class="rec-data-grid">
+                                <div class="rec-data-col">
+                                    <div class="rec-data-item">Nitrogen: <span>${fN.value.trim()} kg/ha</span></div>
+                                    <div class="rec-data-item">Phosphorus: <span>${fP.value.trim()} kg/ha</span></div>
+                                </div>
+                                <div class="rec-data-separator"></div>
+                                <div class="rec-data-col">
+                                    <div class="rec-data-item">Potassium: <span>${fK.value.trim()} kg/ha</span></div>
+                                    <div class="rec-data-item">Soil pH: <span>${fPh.value.trim()}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            resultContainer.style.display = 'block';
+
+            setTimeout(() => {
+                const mainContent = document.querySelector('.main-content');
+                mainContent.scrollTop = mainContent.scrollHeight;
+            }, 100);
+
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Recommendation';
+            alert('Could not connect to the backend. Make sure the Flask server is running on port 5000.');
+        }
+    }
+</script>
+</body>
+</html>
