@@ -18,30 +18,36 @@
             --font-family: 'Outfit', sans-serif;
         }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html, body {
+            height: 100%;
+            height: 100dvh;
+        }
         body {
             font-family: var(--font-family);
             color: var(--text-primary);
             display: flex;
             justify-content: center;
-            height: 100vh;
-            overflow: hidden;
             background-color: #f4f4f4;
+            overflow: hidden;
         }
         body::before {
             content:'';
             position:fixed; top:0; left:0;
-            width:100vw; height:100vh;
+            width:100%; height:100%;
             background-image: url('Pic/Crop.jpg');
             background-size:cover; background-position:center;
             z-index:-1;
         }
         .app-container {
-            width:100%; max-width:480px; height:100vh;
+            width:100%; max-width:480px;
+            height: 100vh;
+            height: 100dvh;
             background: rgba(255, 255, 255, 0.34);
             backdrop-filter: blur(1px);
             -webkit-backdrop-filter: blur(12px);
             position:relative; display:flex; flex-direction:column;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         /* Header */
         .top-header {
@@ -50,6 +56,9 @@
             background: rgba(255,255,255,0.85);
             border-bottom: 1px solid rgba(255,255,255,0.5);
             z-index:10;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-bottom-left-radius:20px; border-bottom-right-radius:20px;
         }
@@ -60,8 +69,12 @@
         .header-btn { background:none; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; }
         
         .main-content {
-            flex:1; overflow-y:auto; padding:20px;
-            display:flex; flex-direction:column; gap:20px; scroll-behavior:smooth;
+            flex: 1;
+            min-height: 0;        /* critical — allows flex child to shrink below content size */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;  /* smooth momentum scroll on iOS */
+            padding: 20px;
+            display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
         }
         .main-content::-webkit-scrollbar { width:6px; }
         .main-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
@@ -94,49 +107,64 @@
         .submit-btn:hover { background:#2D5230; }
         .submit-btn:disabled { background:#a5cda8; cursor:not-allowed; }
         
-        /* Recommendation Card (Mockup Match) */
+        /* Recommendation Card */
         .rec-card {
-            background: #fbfdfb; border-radius: 16px; padding: 24px;
+            background: #fbfdfb; border-radius: 16px; padding: 18px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.06);
             width: 100%; margin: 0 auto; animation: fadeIn 0.4s ease; box-sizing: border-box;
         }
-        .rec-header-new { margin-bottom: 20px; }
+        .rec-header-new { margin-bottom: 16px; }
         .rec-title {
-            font-size: 18px; font-weight: 800; color: #2e6030;
-            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+            font-size: 17px; font-weight: 800; color: #2e6030;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
         }
         .rec-subtitle { font-size: 12px; color: #666; line-height: 1.4; }
-        
-        .rec-content { display: flex; gap: 20px; }
+
+        /* Image on top, info below — stacks cleanly on any width */
+        .rec-content { display: flex; gap: 14px; align-items: flex-start; }
         .rec-img-box {
-            flex: 0 0 40%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); align-self: flex-start;
+            flex: 0 0 38%; max-width: 38%;
+            aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .rec-img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        
-        .rec-info-box { flex: 1; display: flex; flex-direction: column; }
-        .rec-crop-label { font-size: 11px; color: #666; margin-bottom: 4px; font-weight: 500; }
-        .rec-crop-title { font-size: 24px; font-weight: 800; color: #2e6030; margin-bottom: 12px; }
-        
+
+        .rec-info-box { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .rec-crop-label { font-size: 11px; color: #666; margin-bottom: 3px; font-weight: 500; }
+        .rec-crop-title {
+            font-size: 20px; font-weight: 800; color: #2e6030; margin-bottom: 10px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* Confidence bar — percentage shown BELOW the bar, never overlapping */
         .rec-confidence-bar {
-            background: #e9ecef; border-radius: 12px; height: 16px;
-            position: relative; margin-bottom: 16px; overflow: hidden;
+            background: #e9ecef; border-radius: 12px; height: 12px;
+            position: relative; margin-bottom: 4px; overflow: hidden;
         }
         .rec-confidence-fill {
             height: 100%; border-radius: 12px; transition: width 1s ease;
         }
         .rec-confidence-text {
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            font-size: 10.5px; font-weight: 800;
+            display: block; font-size: 10px; font-weight: 800;
+            color: #2e6030; text-align: right; margin-bottom: 12px;
         }
-        
-        .rec-divider { border: none; border-top: 1px solid rgba(0,0,0,0.03); margin-bottom: 16px; }
-        
-        .rec-data-grid { display: flex; gap: 12px; }
-        .rec-data-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .rec-data-separator { width: 1px; background: rgba(0,0,0,0.03); }
-        .rec-data-item { font-size: 10px; color: #555; display: flex; justify-content: space-between; align-items: center; gap: 4px; white-space: nowrap; }
-        .rec-data-item span { font-weight: 700; color: #222; white-space: nowrap; }
+
+        .rec-divider { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin-bottom: 12px; }
+
+        /* Data grid — 2-col grid, wraps naturally, no overflow */
+        .rec-data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 6px;
+        }
+        .rec-data-col { display: contents; }        /* flatten cols into the grid */
+        .rec-data-separator { display: none; }      /* not needed with CSS grid */
+        .rec-data-item {
+            font-size: 10px; color: #555;
+            display: flex; flex-direction: column; gap: 1px;
+            white-space: normal; overflow: hidden;
+        }
+        .rec-data-item span { font-weight: 700; color: #222; font-size: 11px; }
 
         /* AI Chat input bar */
         #chat-input-bar {
@@ -147,6 +175,9 @@
             background: rgba(255,255,255,0.96);
             border-top: 1px solid rgba(59,107,63,0.10);
             flex-shrink: 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
         }
         #chat-input-wrap {
@@ -464,21 +495,16 @@
                             
                             <div class="rec-confidence-bar">
                                 <div class="rec-confidence-fill" style="width: ${score}%; background: ${barColor};"></div>
-                                <span class="rec-confidence-text" style="color: ${textColor};">${score}%</span>
                             </div>
+                            <span class="rec-confidence-text" style="color: ${barColor};">${score}%</span>
                             
                             <hr class="rec-divider">
                             
                             <div class="rec-data-grid">
-                                <div class="rec-data-col">
-                                    <div class="rec-data-item">Nitrogen: <span>${fN.value.trim()} kg/ha</span></div>
-                                    <div class="rec-data-item">Phosphorus: <span>${fP.value.trim()} kg/ha</span></div>
-                                </div>
-                                <div class="rec-data-separator"></div>
-                                <div class="rec-data-col">
-                                    <div class="rec-data-item">Potassium: <span>${fK.value.trim()} kg/ha</span></div>
-                                    <div class="rec-data-item">Soil pH: <span>${fPh.value.trim()}</span></div>
-                                </div>
+                                <div class="rec-data-item">Nitrogen <span>${fN.value.trim()} kg/ha</span></div>
+                                <div class="rec-data-item">Potassium <span>${fK.value.trim()} kg/ha</span></div>
+                                <div class="rec-data-item">Phosphorus <span>${fP.value.trim()} kg/ha</span></div>
+                                <div class="rec-data-item">Soil pH <span>${fPh.value.trim()}</span></div>
                             </div>
                         </div>
                     </div>
