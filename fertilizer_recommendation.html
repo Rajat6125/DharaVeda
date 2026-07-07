@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,11 +18,20 @@
             --light-green: #E8F5E9;
             --font-family: 'Outfit', sans-serif;
         }
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-        html, body {
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
             height: 100%;
             height: 100dvh;
         }
+
         body {
             font-family: var(--font-family);
             color: var(--text-primary);
@@ -30,138 +40,346 @@
             background-color: #f4f4f4;
             overflow: hidden;
         }
+
         body::before {
-            content:'';
-            position:fixed; top:0; left:0;
-            width:100%; height:100%;
-            background-image: url('Pic/fertilier.png');
-            background-size:cover; background-position:center;
-            z-index:-1;
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('Pic/fertilier.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
         }
+
         .app-container {
-            width:100%; max-width:480px;
+            width: 100%;
+            max-width: 480px;
             height: 100vh;
             height: 100dvh;
             background: rgba(255, 255, 255, 0.34);
             backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(6px);
-            position:relative; display:flex; flex-direction:column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            -webkit-backdrop-filter: blur(12px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         /* Header */
         .top-header {
-            display:flex; align-items:center; justify-content:space-between;
-            padding:16px 20px;
-            background: rgba(255,255,255,0.85);
-            border-bottom: 1px solid rgba(255,255,255,0.5);
-            z-index:10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            z-index: 10;
             flex-shrink: 0;
             position: sticky;
             top: 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-bottom-left-radius:20px; border-bottom-right-radius:20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
         }
-        .header-left { display:flex; align-items:center; gap:12px; }
-        .header-info h2 { font-size:18px; font-weight:700; color:var(--accent-green); }
-        .header-info p { font-size:12px; color:var(--text-secondary); }
-        .header-right { display:flex; gap:16px; }
-        .header-btn { background:none; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; }
-        
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-info h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .header-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
         .main-content {
             flex: 1;
             min-height: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding: 20px;
-            display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
         }
-        .main-content::-webkit-scrollbar { width:6px; }
-        .main-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
-        
-        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        
+
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
         /* Form Card */
         .form-card {
-            background:rgba(240,248,241,0.95); border-radius:20px; padding:20px;
-            box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.5);
-            animation:fadeIn 0.3s ease; width:100%;
+            background: rgba(240, 248, 241, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: fadeIn 0.3s ease;
+            width: 100%;
         }
-        .form-header { margin-bottom:16px; }
-        .form-header h3 { font-size:16px; color:var(--accent-green); display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-        .form-header p { font-size:12px; color:var(--text-secondary); }
-        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-        .input-group { display:flex; flex-direction:column; gap:4px; }
-        .input-group label { font-size:11px; font-weight:500; color:var(--text-secondary); }
-        .input-group input, .input-group select {
-            padding:10px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);
-            background:white; font-size:12px; font-family:var(--font-family); outline:none; transition:all 0.2s;
+
+        .form-header {
+            margin-bottom: 16px;
         }
-        .input-group input:focus, .input-group select:focus { border-color:var(--accent-green); box-shadow:0 0 0 2px rgba(59,107,63,0.1); }
+
+        .form-header h3 {
+            font-size: 16px;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .form-header p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: white;
+            font-size: 12px;
+            font-family: var(--font-family);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 2px rgba(59, 107, 63, 0.1);
+        }
+
         .submit-btn {
-            width:100%; background:var(--accent-green); color:white; border:none;
-            padding:12px; border-radius:12px; font-size:14px; font-weight:600;
-            font-family:var(--font-family); cursor:pointer;
-            display:flex; justify-content:center; align-items:center; gap:8px; transition:background 0.2s;
+            width: 100%;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-family);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
         }
-        .submit-btn:hover { background:#2D5230; }
-        .submit-btn:disabled { background:#a5cda8; cursor:not-allowed; }
-        
+
+        .submit-btn:hover {
+            background: #2D5230;
+        }
+
+        .submit-btn:disabled {
+            background: #a5cda8;
+            cursor: not-allowed;
+        }
+
         /* Recommendation Card */
         .rec-card {
-            background: #fbfdfb; border-radius: 16px; padding: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.06);
-            width: 100%; margin: 0 auto; animation: fadeIn 0.4s ease; box-sizing: border-box;
+            background: #fbfdfb;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            width: 100%;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease;
+            box-sizing: border-box;
         }
-        .rec-header-new { margin-bottom: 16px; }
+
+        .rec-header-new {
+            margin-bottom: 16px;
+        }
+
         .rec-title {
-            font-size: 17px; font-weight: 800; color: #2e6030;
-            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+            font-size: 17px;
+            font-weight: 800;
+            color: #2e6030;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
         }
-        .rec-subtitle { font-size: 12px; color: #666; line-height: 1.4; }
 
-        .rec-content { display: flex; gap: 14px; align-items: flex-start; }
+        .rec-subtitle {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .rec-content {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
         .rec-img-box {
-            flex: 0 0 38%; max-width: 38%;
-            aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex: 0 0 38%;
+            max-width: 38%;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        .rec-img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        .rec-info-box { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .rec-crop-label { font-size: 11px; color: #666; margin-bottom: 3px; font-weight: 500; }
+        .rec-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .rec-info-box {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rec-crop-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+
         .rec-crop-title {
-            font-size: 20px; font-weight: 800; color: #2e6030; margin-bottom: 10px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 20px;
+            font-weight: 800;
+            color: #2e6030;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .rec-confidence-bar {
-            background: #e9ecef; border-radius: 12px; height: 12px;
-            position: relative; margin-bottom: 4px; overflow: hidden;
-        }
-        .rec-confidence-fill {
-            height: 100%; border-radius: 12px; transition: width 1s ease;
-        }
-        .rec-confidence-text {
-            display: block; font-size: 10px; font-weight: 800;
-            color: #2e6030; text-align: right; margin-bottom: 12px;
+            background: #e9ecef;
+            border-radius: 12px;
+            height: 12px;
+            position: relative;
+            margin-bottom: 4px;
+            overflow: hidden;
         }
 
-        .rec-divider { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin-bottom: 12px; }
+        .rec-confidence-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s ease;
+        }
+
+        .rec-confidence-text {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            color: #2e6030;
+            text-align: right;
+            margin-bottom: 12px;
+        }
+
+        .rec-divider {
+            border: none;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 12px;
+        }
 
         .rec-data-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px 6px;
         }
-        .rec-data-col { display: contents; }
-        .rec-data-separator { display: none; }
-        .rec-data-item {
-            font-size: 10px; color: #555;
-            display: flex; flex-direction: column; gap: 1px;
-            white-space: normal; overflow: hidden;
+
+        .rec-data-col {
+            display: contents;
         }
-        .rec-data-item span { font-weight: 700; color: #222; font-size: 11px; }
+
+        .rec-data-separator {
+            display: none;
+        }
+
+        .rec-data-item {
+            font-size: 10px;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            white-space: normal;
+            overflow: hidden;
+        }
+
+        .rec-data-item span {
+            font-weight: 700;
+            color: #222;
+            font-size: 11px;
+        }
 
         /* AI Chat input bar */
         #chat-input-bar {
@@ -169,35 +387,39 @@
             align-items: center;
             gap: 10px;
             padding: 12px 16px 14px;
-            background: rgba(255,255,255,0.96);
-            border-top: 1px solid rgba(59,107,63,0.10);
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid rgba(59, 107, 63, 0.10);
             flex-shrink: 0;
             position: sticky;
             bottom: 0;
             z-index: 10;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
         }
+
         #chat-input-wrap {
             flex: 1;
             display: flex;
             align-items: center;
             gap: 8px;
             background: #f0f6f1;
-            border: 1.5px solid rgba(59,107,63,0.18);
+            border: 1.5px solid rgba(59, 107, 63, 0.18);
             border-radius: 28px;
             padding: 8px 14px;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
+
         #chat-input-wrap:focus-within {
             border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(59,107,63,0.10);
+            box-shadow: 0 0 0 3px rgba(59, 107, 63, 0.10);
         }
+
         #chat-input-wrap .chat-leaf-icon {
             font-size: 14px;
             color: var(--accent-green);
             opacity: 0.6;
             flex-shrink: 0;
         }
+
         #chat-input {
             flex: 1;
             border: none;
@@ -208,266 +430,339 @@
             color: var(--text-primary);
             min-width: 0;
         }
-        #chat-input::placeholder { color: #aaa; }
-        #chat-input:disabled { cursor: not-allowed; }
+
+        #chat-input::placeholder {
+            color: #aaa;
+        }
+
+        #chat-input:disabled {
+            cursor: not-allowed;
+        }
+
         #chat-send-btn {
-            width: 42px; height: 42px;
-            border-radius: 50%; border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
             background: var(--accent-green);
-            color: white; font-size: 15px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(59,107,63,0.3);
+            box-shadow: 0 2px 8px rgba(59, 107, 63, 0.3);
             flex-shrink: 0;
         }
-        #chat-send-btn:hover:not(:disabled) { background: #2D5230; box-shadow: 0 4px 12px rgba(59,107,63,0.4); }
-        #chat-send-btn:active:not(:disabled) { transform: scale(0.92); }
-        #chat-send-btn:disabled { background: #c8ddc9; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+
+        #chat-send-btn:hover:not(:disabled) {
+            background: #2D5230;
+            box-shadow: 0 4px 12px rgba(59, 107, 63, 0.4);
+        }
+
+        #chat-send-btn:active:not(:disabled) {
+            transform: scale(0.92);
+        }
+
+        #chat-send-btn:disabled {
+            background: #c8ddc9;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
         #chat-input-bar.locked #chat-input-wrap {
             background: #f5f5f5;
-            border-color: rgba(0,0,0,0.08);
+            border-color: rgba(0, 0, 0, 0.08);
         }
-        #chat-input-bar.locked .chat-leaf-icon { opacity: 0.3; }
+
+        #chat-input-bar.locked .chat-leaf-icon {
+            opacity: 0.3;
+        }
     </style>
 </head>
+
 <body>
-<div class="app-container">
-    <div class="top-header">
-        <div class="header-left">
-            <button class="header-btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i></button>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="Pic/Crop_rmd.png" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
-                <div class="header-info">
-                    <h2>UrvaraMitra</h2>
-                    <p>DharaVeda's Fertilizer recommendation system</p>
+    <div class="app-container">
+        <div class="top-header">
+            <div class="header-left">
+                <button class="header-btn" onclick="window.history.back()"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="Pic/Crop_rmd.png"
+                        style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                    <div class="header-info">
+                        <h2>UrvaraMitra</h2>
+                        <p>DharaVeda's Fertilizer recommendation system</p>
+                    </div>
                 </div>
             </div>
+            <div class="header-right">
+                <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
         </div>
-        <div class="header-right">
-            <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div id="chat-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
 
-        <div class="form-card" id="input-form-card" style="display: none;">
-            <div class="form-header">
-                <h3>🌱 Enter Field & Crop Details</h3>
-                <p>Provide accurate information for the best recommendation</p>
+        <div class="main-content">
+            <div id="chat-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+
+            <div class="form-card" id="input-form-card" style="display: none;">
+                <div class="form-header">
+                    <h3>🌱 Enter Field & Crop Details</h3>
+                    <p>Provide accurate information for the best recommendation</p>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Soil Type</label><select id="f-soil-type">
+                            <option value="Clay">Clay</option>
+                            <option value="Loamy">Loamy</option>
+                            <option value="Sandy">Sandy</option>
+                            <option value="Silt">Silt</option>
+                        </select></div>
+                    <div class="input-group"><label>Soil pH</label><input type="number" step="0.1" id="f-ph"
+                            placeholder="e.g., 6.5"></div>
+                    <div class="input-group"><label>Soil Moisture (%)</label><input type="number" step="0.1"
+                            id="f-moisture" placeholder="e.g., 38"></div>
+                    <div class="input-group"><label>Organic Carbon (%)</label><input type="number" step="0.1"
+                            id="f-organic" placeholder="e.g., 0.7"></div>
+                    <div class="input-group"><label>Nitrogen (N) kg/ha</label><input type="number" step="0.1" id="f-n"
+                            placeholder="e.g., 90"></div>
+                    <div class="input-group"><label>Phosphorus (P) kg/ha</label><input type="number" step="0.1" id="f-p"
+                            placeholder="e.g., 42"></div>
+                    <div class="input-group"><label>Potassium (K) kg/ha</label><input type="number" step="0.1" id="f-k"
+                            placeholder="e.g., 43"></div>
+                    <div class="input-group"><label>Temperature (°C)</label><input type="number" step="0.1" id="f-temp"
+                            placeholder="e.g., 20.8"></div>
+                    <div class="input-group"><label>Humidity (%)</label><input type="number" step="0.1" id="f-hum"
+                            placeholder="e.g., 82.0"></div>
+                    <div class="input-group"><label>Rainfall (mm)</label><input type="number" step="0.1" id="f-rain"
+                            placeholder="e.g., 202.9"></div>
+                    <div class="input-group"><label>Current Crop</label><select id="f-crop">
+                            <option value="Cotton">Cotton</option>
+                            <option value="Maize">Maize</option>
+                            <option value="Potato">Potato</option>
+                            <option value="Rice">Rice</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                            <option value="Tomato">Tomato</option>
+                            <option value="Wheat">Wheat</option>
+                        </select></div>
+                    <div class="input-group"><label>Growth Stage</label><select id="f-stage">
+                            <option value="Sowing">Sowing</option>
+                            <option value="Vegetative">Vegetative</option>
+                            <option value="Flowering">Flowering</option>
+                            <option value="Harvest">Harvest</option>
+                        </select></div>
+                    <div class="input-group"><label>Season</label><select id="f-season">
+                            <option value="Kharif">Kharif</option>
+                            <option value="Rabi">Rabi</option>
+                            <option value="Zaid">Zaid</option>
+                        </select></div>
+                    <div class="input-group"><label>Previous Crop</label><select id="f-prev">
+                            <option value="Cotton">Cotton</option>
+                            <option value="Maize">Maize</option>
+                            <option value="Potato">Potato</option>
+                            <option value="Rice">Rice</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                            <option value="Tomato">Tomato</option>
+                            <option value="Wheat">Wheat</option>
+                        </select></div>
+                </div>
+                <button class="submit-btn" id="submit-btn" onclick="submitForm()">
+                    <i class="fa-solid fa-paper-plane"></i> Get Fertilizer
+                </button>
             </div>
-            <div class="form-grid">
-                <div class="input-group"><label>Soil Type</label><select id="f-soil-type"><option value="Clay">Clay</option><option value="Loamy">Loamy</option><option value="Sandy">Sandy</option><option value="Silt">Silt</option></select></div>
-                <div class="input-group"><label>Soil pH</label><input type="number" step="0.1" id="f-ph" placeholder="e.g., 6.5"></div>
-                <div class="input-group"><label>Soil Moisture (%)</label><input type="number" step="0.1" id="f-moisture" placeholder="e.g., 38"></div>
-                <div class="input-group"><label>Organic Carbon (%)</label><input type="number" step="0.1" id="f-organic" placeholder="e.g., 0.7"></div>
-                <div class="input-group"><label>Nitrogen (N) kg/ha</label><input type="number" step="0.1" id="f-n" placeholder="e.g., 90"></div>
-                <div class="input-group"><label>Phosphorus (P) kg/ha</label><input type="number" step="0.1" id="f-p" placeholder="e.g., 42"></div>
-                <div class="input-group"><label>Potassium (K) kg/ha</label><input type="number" step="0.1" id="f-k" placeholder="e.g., 43"></div>
-                <div class="input-group"><label>Temperature (°C)</label><input type="number" step="0.1" id="f-temp" placeholder="e.g., 20.8"></div>
-                <div class="input-group"><label>Humidity (%)</label><input type="number" step="0.1" id="f-hum" placeholder="e.g., 82.0"></div>
-                <div class="input-group"><label>Rainfall (mm)</label><input type="number" step="0.1" id="f-rain" placeholder="e.g., 202.9"></div>
-                <div class="input-group"><label>Current Crop</label><select id="f-crop"><option value="Cotton">Cotton</option><option value="Maize">Maize</option><option value="Potato">Potato</option><option value="Rice">Rice</option><option value="Sugarcane">Sugarcane</option><option value="Tomato">Tomato</option><option value="Wheat">Wheat</option></select></div>
-                <div class="input-group"><label>Growth Stage</label><select id="f-stage"><option value="Sowing">Sowing</option><option value="Vegetative">Vegetative</option><option value="Flowering">Flowering</option><option value="Harvest">Harvest</option></select></div>
-                <div class="input-group"><label>Season</label><select id="f-season"><option value="Kharif">Kharif</option><option value="Rabi">Rabi</option><option value="Zaid">Zaid</option></select></div>
-                <div class="input-group"><label>Previous Crop</label><select id="f-prev"><option value="Cotton">Cotton</option><option value="Maize">Maize</option><option value="Potato">Potato</option><option value="Rice">Rice</option><option value="Sugarcane">Sugarcane</option><option value="Tomato">Tomato</option><option value="Wheat">Wheat</option></select></div>
+
+            <div id="result-container" style="display: none; width: 100%;"></div>
+
+            <div id="ai-chat-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px;">
             </div>
-            <button class="submit-btn" id="submit-btn" onclick="submitForm()">
-                <i class="fa-solid fa-paper-plane"></i> Get Fertilizer
+        </div>
+
+        <div id="chat-input-bar" class="locked">
+            <div id="chat-input-wrap">
+                <i class="fa-solid fa-seedling chat-leaf-icon"></i>
+                <input id="chat-input" type="text" placeholder="Ask about your fertilizer…" autocomplete="off" disabled>
+            </div>
+            <button id="chat-send-btn" onclick="sendChatMessage()" disabled>
+                <i class="fa-solid fa-paper-plane"></i>
             </button>
         </div>
-
-        <div id="result-container" style="display: none; width: 100%;"></div>
-
-        <div id="ai-chat-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px;"></div>
     </div>
 
-    <div id="chat-input-bar" class="locked">
-        <div id="chat-input-wrap">
-            <i class="fa-solid fa-seedling chat-leaf-icon"></i>
-            <input id="chat-input" type="text" placeholder="Ask about your fertilizer…" autocomplete="off" disabled>
-        </div>
-        <button id="chat-send-btn" onclick="sendChatMessage()" disabled>
-            <i class="fa-solid fa-paper-plane"></i>
-        </button>
-    </div>
-</div>
+    <script>
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://dharaveda.onrender.com';
 
-<script>
-    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'http://localhost:5000'
-        : 'https://dharaveda.onrender.com';
+        const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token');
 
-    const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token');
-
-    function getUserName() {
-        if (!jwtToken) return 'User';
-        try {
-            const payload = JSON.parse(atob(jwtToken.split('.')[1]));
-            return payload.name || payload.username || payload.sub || 'User';
-        } catch(e) {
-            return 'User';
+        function getUserName() {
+            if (!jwtToken) return 'User';
+            try {
+                const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+                return payload.name || payload.username || payload.sub || 'User';
+            } catch (e) {
+                return 'User';
+            }
         }
-    }
 
-    async function streamText(element, text, speed = 30) {
-        element.innerHTML = '';
-        for (let i = 0; i < text.length; i++) {
-            element.innerHTML += text.charAt(i);
-            await new Promise(r => setTimeout(r, speed));
+        async function streamText(element, text, speed = 30) {
+            element.innerHTML = '';
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text.charAt(i);
+                await new Promise(r => setTimeout(r, speed));
+            }
         }
-    }
 
-    let lastSender = null;
+        let lastSender = null;
 
-    function addBotMessage(container) {
-        const containerId = container === 'post' ? 'ai-chat-container' : 'chat-container';
-        const showAvatar = lastSender !== 'bot';
-        lastSender = 'bot';
+        function addBotMessage(container) {
+            const containerId = container === 'post' ? 'ai-chat-container' : 'chat-container';
+            const showAvatar = lastSender !== 'bot';
+            lastSender = 'bot';
 
-        const msgDiv = document.createElement('div');
-        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
-        
-        const avatarHtml = showAvatar 
-            ? `<img src="Pic/Crop_rmd.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">` 
-            : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
 
-        msgDiv.innerHTML = `
+            const avatarHtml = showAvatar
+                ? `<img src="Pic/Crop_rmd.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
+                : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+
+            msgDiv.innerHTML = `
             ${avatarHtml}
             <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-left-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
         `;
-        document.getElementById(containerId).appendChild(msgDiv);
-        const mainContent = document.querySelector('.main-content');
-        mainContent.scrollTop = mainContent.scrollHeight;
-        return msgDiv.querySelector('.msg-bubble');
-    }
+            document.getElementById(containerId).appendChild(msgDiv);
+            const mainContent = document.querySelector('.main-content');
+            mainContent.scrollTop = mainContent.scrollHeight;
+            return msgDiv.querySelector('.msg-bubble');
+        }
 
-    function addUserMessage(text) {
-        const containerId = chatState.fieldData ? 'ai-chat-container' : 'chat-container';
-        const showAvatar = lastSender !== 'user';
-        lastSender = 'user';
+        function addUserMessage(text) {
+            const containerId = chatState.fieldData ? 'ai-chat-container' : 'chat-container';
+            const showAvatar = lastSender !== 'user';
+            lastSender = 'user';
 
-        const msgDiv = document.createElement('div');
-        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; animation: fadeIn 0.3s ease;";
-        
-        const avatarHtml = showAvatar 
-            ? `<img src="Pic/User.png" onerror="this.src='Pic/Logo.png'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
-            : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; animation: fadeIn 0.3s ease;";
 
-        msgDiv.innerHTML = `
+            const avatarHtml = showAvatar
+                ? `<img src="Pic/User.png" onerror="this.src='Pic/Logo.png'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px;">`
+                : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
+
+            msgDiv.innerHTML = `
             <div class="msg-bubble" style="background: var(--accent-green); color: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; max-width: 85%;">
                 ${text}
             </div>
             ${avatarHtml}
         `;
-        document.getElementById(containerId).appendChild(msgDiv);
-        const mainContent = document.querySelector('.main-content');
-        mainContent.scrollTop = mainContent.scrollHeight;
-    }
-
-    function addLoadingMessage() {
-        const msgDiv = document.createElement('div');
-        msgDiv.id = "loading-msg";
-        msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
-        msgDiv.innerHTML = `
-            <img src="Pic/loading.gif" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-left: -4px; margin-top: -2px;">
-        `;
-        document.getElementById('chat-container').appendChild(msgDiv);
-        const mainContent = document.querySelector('.main-content');
-        mainContent.scrollTop = mainContent.scrollHeight;
-        return msgDiv;
-    }
-
-    window.onload = async () => {
-        const userName = getUserName();
-        const formCard = document.getElementById('input-form-card');
-        
-        let bubble = addBotMessage();
-        await streamText(bubble, `Namaskaram ${userName}.`);
-
-        bubble = addBotMessage();
-        await streamText(bubble, "I am Urvara, your fertilizer recommender.");
-
-        const loading = addLoadingMessage();
-        await new Promise(r => setTimeout(r, 2000));
-        loading.remove();
-
-        bubble = addBotMessage();
-        await streamText(bubble, "Please provide your field details below so I can recommend the best fertilizer for your crop.");
-
-        formCard.style.display = 'block';
-        const mainContent = document.querySelector('.main-content');
-        mainContent.scrollTop = mainContent.scrollHeight;
-    };
-
-    async function submitForm() {
-        const payload = {
-            Soil_Type: document.getElementById('f-soil-type').value,
-            Soil_pH: document.getElementById('f-ph').value.trim(),
-            Soil_Moisture: document.getElementById('f-moisture').value.trim(),
-            Organic_Carbon: document.getElementById('f-organic').value.trim(),
-            Nitrogen_Level: document.getElementById('f-n').value.trim(),
-            Phosphorus_Level: document.getElementById('f-p').value.trim(),
-            Potassium_Level: document.getElementById('f-k').value.trim(),
-            Temperature: document.getElementById('f-temp').value.trim(),
-            Humidity: document.getElementById('f-hum').value.trim(),
-            Rainfall: document.getElementById('f-rain').value.trim(),
-            Crop_Type: document.getElementById('f-crop').value.trim(),
-            Crop_Growth_Stage: document.getElementById('f-stage').value,
-            Season: document.getElementById('f-season').value,
-            Previous_Crop: document.getElementById('f-prev').value.trim()
-        };
-
-        if (Object.values(payload).some(v => v === "")) {
-            alert("Please fill in all fields before submitting.");
-            return;
+            document.getElementById(containerId).appendChild(msgDiv);
+            const mainContent = document.querySelector('.main-content');
+            mainContent.scrollTop = mainContent.scrollHeight;
         }
 
-        addUserMessage("Here are my field details, please recommend a fertilizer.");
+        function addLoadingMessage() {
+            const msgDiv = document.createElement('div');
+            msgDiv.id = "loading-msg";
+            msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+            msgDiv.innerHTML = `
+            <img src="Pic/loading.gif" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-left: -4px; margin-top: -2px;">
+        `;
+            document.getElementById('chat-container').appendChild(msgDiv);
+            const mainContent = document.querySelector('.main-content');
+            mainContent.scrollTop = mainContent.scrollHeight;
+            return msgDiv;
+        }
 
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<img src="Pic/loading.gif" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"> Processing...';
-        
-        const resultContainer = document.getElementById('result-container');
-        resultContainer.style.display = 'none';
+        window.onload = async () => {
+            const userName = getUserName();
+            const formCard = document.getElementById('input-form-card');
 
-        try {
-            const headers = { 'Content-Type': 'application/json' };
-            if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+            let bubble = addBotMessage();
+            await streamText(bubble, `Namaskaram ${userName}.`);
 
-            const res = await fetch(`${API_BASE}/api/fertilizer_recommend`, {
-                method: 'POST', headers,
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json();
+            bubble = addBotMessage();
+            await streamText(bubble, "I am Urvara, your fertilizer recommender.");
 
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Fertilizer';
+            const loading = addLoadingMessage();
+            await new Promise(r => setTimeout(r, 2000));
+            loading.remove();
 
-            if (!result.success) {
-                alert(`Server error: ${result.error || 'Could not get recommendation'}`);
+            bubble = addBotMessage();
+            await streamText(bubble, "Please provide your field details below so I can recommend the best fertilizer for your crop.");
+
+            formCard.style.display = 'block';
+            const mainContent = document.querySelector('.main-content');
+            mainContent.scrollTop = mainContent.scrollHeight;
+        };
+
+        async function submitForm() {
+            const payload = {
+                Soil_Type: document.getElementById('f-soil-type').value,
+                Soil_pH: document.getElementById('f-ph').value.trim(),
+                Soil_Moisture: document.getElementById('f-moisture').value.trim(),
+                Organic_Carbon: document.getElementById('f-organic').value.trim(),
+                Nitrogen_Level: document.getElementById('f-n').value.trim(),
+                Phosphorus_Level: document.getElementById('f-p').value.trim(),
+                Potassium_Level: document.getElementById('f-k').value.trim(),
+                Temperature: document.getElementById('f-temp').value.trim(),
+                Humidity: document.getElementById('f-hum').value.trim(),
+                Rainfall: document.getElementById('f-rain').value.trim(),
+                Crop_Type: document.getElementById('f-crop').value.trim(),
+                Crop_Growth_Stage: document.getElementById('f-stage').value,
+                Season: document.getElementById('f-season').value,
+                Previous_Crop: document.getElementById('f-prev').value.trim()
+            };
+
+            if (Object.values(payload).some(v => v === "")) {
+                alert("Please fill in all fields before submitting.");
                 return;
             }
 
-            const fertilizerName  = result.fertilizer;
-            const score     = result.confidence;
+            addUserMessage("Here are my field details, please recommend a fertilizer.");
 
-            if (score < 40) {
-                resultContainer.innerHTML = `
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<img src="Pic/loading.gif" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"> Processing...';
+
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.style.display = 'none';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+
+                const res = await fetch(`${API_BASE}/api/fertilizer_recommend`, {
+                    method: 'POST', headers,
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Fertilizer';
+
+                if (!result.success) {
+                    alert(`Server error: ${result.error || 'Could not get recommendation'}`);
+                    return;
+                }
+
+                const fertilizerName = result.fertilizer;
+                const score = result.confidence;
+
+                if (score < 40) {
+                    resultContainer.innerHTML = `
                     <div class="rec-card" style="padding: 30px 20px; text-align: center; border: 1px solid rgba(239, 83, 80, 0.3);">
                         <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; color: #ef5350; margin-bottom: 12px;"></i>
                         <h2 style="color: #c62828; font-size: 20px; font-weight: 700; margin-bottom: 6px;">Unable to recommend fertilizer</h2>
                         <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Recheck Values</p>
                     </div>`;
-                resultContainer.style.display = 'block';
-                return;
-            }
+                    resultContainer.style.display = 'block';
+                    return;
+                }
 
-            const fertTitle = fertilizerName.charAt(0).toUpperCase() + fertilizerName.slice(1).toLowerCase();
-            const barColor  = score >= 70 ? '#3b6b3f' : score >= 40 ? '#f57c00' : '#ef5350';
+                const fertTitle = fertilizerName.charAt(0).toUpperCase() + fertilizerName.slice(1).toLowerCase();
+                const barColor = score >= 70 ? '#3b6b3f' : score >= 40 ? '#f57c00' : '#ef5350';
 
-            resultContainer.innerHTML = `
+                resultContainer.innerHTML = `
                 <div class="rec-card">
                     <div class="rec-header-new">
                         <div class="rec-title">
@@ -496,219 +791,220 @@
                         </div>
                     </div>
                 </div>`;
-            resultContainer.style.display = 'block';
+                resultContainer.style.display = 'block';
 
-            chatState.fieldData = {
-                fertilizerName: fertTitle,
-                confidence: score,
-                cropName: payload.Crop_Type,
-                ...payload
-            };
+                chatState.fieldData = {
+                    fertilizerName: fertTitle,
+                    confidence: score,
+                    cropName: payload.Crop_Type,
+                    ...payload
+                };
 
-            showChatInput();
+                showChatInput();
 
-            setTimeout(() => {
-                const mainContent = document.querySelector('.main-content');
-                mainContent.scrollTop = mainContent.scrollHeight;
-                triggerAutoJustification();
-            }, 200);
+                setTimeout(() => {
+                    const mainContent = document.querySelector('.main-content');
+                    mainContent.scrollTop = mainContent.scrollHeight;
+                    triggerAutoJustification();
+                }, 200);
 
-        } catch (err) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Fertilizer';
-            alert('Could not connect to the backend. Make sure the Flask server is running on port 5000.');
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get Fertilizer';
+                alert('Could not connect to the backend. Make sure the Flask server is running on port 5000.');
+            }
         }
-    }
 
-    const chatState = {
-        history: [],
-        isStreaming: false,
-        fieldData: null
-    };
+        const chatState = {
+            history: [],
+            isStreaming: false,
+            fieldData: null
+        };
 
-    function buildSystemPrompt(fd) {
-        return `You are UrvaraMitra, a friendly agricultural advisor in the DharaVeda platform. You are mid-conversation with a farmer about their field conditions.\n\n## Field Conditions & Top Recommendation\n- Best match: ${fd.fertilizerName} (${fd.confidence}% model confidence) for crop ${fd.cropName}\n- N: ${fd.Nitrogen_Level} | P: ${fd.Phosphorus_Level} | K: ${fd.Potassium_Level}\n- Temp: ${fd.Temperature}°C | Humidity: ${fd.Humidity}% | pH: ${fd.Soil_pH} | Rainfall: ${fd.Rainfall}mm\n\n## Your Role\nYou are an advisor, not a dictator. The recommended fertilizer is a data-driven suggestion, not a command. Always remember:\n1. NEVER introduce yourself or restart the session — you are already in an ongoing conversation.\n2. If the user says hello, thanks, or anything casual, acknowledge it warmly in one short sentence and stay on the farming topic.\n3. If the user asks about alternative fertilizers, freely suggest 2-3 realistic alternatives that could work with their conditions. Explain briefly why each might or might not suit their field.\n4. You may explain why the recommended fertilizer suits their conditions, but never push it or insist the user must use it.\n5. Keep responses concise by default — 2-4 sentences for simple questions. For detailed questions (like "explain", "how to", "why", "what are all the steps", or requests for alternatives), give a thorough answer covering all relevant points. Never cut a detailed answer short just to be brief.\n6. Do NOT use markdown like **bold**, *italic*, or numbered lists. Write plain sentences only.\n7. Only discuss farming topics. Politely decline anything unrelated in one sentence.`;
-    }
+        function buildSystemPrompt(fd) {
+            return `You are UrvaraMitra, a friendly agricultural advisor in the DharaVeda platform. You are mid-conversation with a farmer about their field conditions.\n\n## Field Conditions & Top Recommendation\n- Best match: ${fd.fertilizerName} (${fd.confidence}% model confidence) for crop ${fd.cropName}\n- N: ${fd.Nitrogen_Level} | P: ${fd.Phosphorus_Level} | K: ${fd.Potassium_Level}\n- Temp: ${fd.Temperature}°C | Humidity: ${fd.Humidity}% | pH: ${fd.Soil_pH} | Rainfall: ${fd.Rainfall}mm\n\n## Your Role\nYou are an advisor, not a dictator. The recommended fertilizer is a data-driven suggestion, not a command. Always remember:\n1. NEVER introduce yourself or restart the session — you are already in an ongoing conversation.\n2. If the user says hello, thanks, or anything casual, acknowledge it warmly in one short sentence and stay on the farming topic.\n3. If the user asks about alternative fertilizers, freely suggest 2-3 realistic alternatives that could work with their conditions. Explain briefly why each might or might not suit their field.\n4. You may explain why the recommended fertilizer suits their conditions, but never push it or insist the user must use it.\n5. Keep responses concise by default — 2-4 sentences for simple questions. For detailed questions (like "explain", "how to", "why", "what are all the steps", or requests for alternatives), give a thorough answer covering all relevant points. Never cut a detailed answer short just to be brief.\n6. Do NOT use markdown like **bold**, *italic*, or numbered lists. Write plain sentences only.\n7. Only discuss farming topics. Politely decline anything unrelated in one sentence.`;
+        }
 
-    function renderMarkdown(text) {
-        let out = text.replace(/^\d+\.\s+/gm, '');
-        out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        out = out.replace(/\*([^*\n]+)\*/g, '$1');
-        out = out.replace(/^\*\s*/gm, '');
-        out = out.replace(/^#{1,3}\s*/gm, '');
-        out = out.split('\n').map(l => l.trim()).filter(l => l).join(' ');
-        return out.trim();
-    }
+        function renderMarkdown(text) {
+            let out = text.replace(/^\d+\.\s+/gm, '');
+            out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            out = out.replace(/\*([^*\n]+)\*/g, '$1');
+            out = out.replace(/^\*\s*/gm, '');
+            out = out.replace(/^#{1,3}\s*/gm, '');
+            out = out.split('\n').map(l => l.trim()).filter(l => l).join(' ');
+            return out.trim();
+        }
 
-    async function streamAIResponse(messages) {
-        chatState.isStreaming = true;
-        const sendBtn = document.getElementById('chat-send-btn');
-        if (sendBtn) sendBtn.disabled = true;
+        async function streamAIResponse(messages) {
+            chatState.isStreaming = true;
+            const sendBtn = document.getElementById('chat-send-btn');
+            if (sendBtn) sendBtn.disabled = true;
 
-        const headers = { 'Content-Type': 'application/json' };
-        if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
 
-        let fullReply = '';
-        lastSender = null;
-        const containerId = 'ai-chat-container';
-        const firstMsgDiv = document.createElement('div');
-        firstMsgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
-        firstMsgDiv.innerHTML = `
+            let fullReply = '';
+            lastSender = null;
+            const containerId = 'ai-chat-container';
+            const firstMsgDiv = document.createElement('div');
+            firstMsgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+            firstMsgDiv.innerHTML = `
             <img id="ai-thinking-avatar" src="Pic/loading.gif" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
             <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
         `;
-        document.getElementById(containerId).appendChild(firstMsgDiv);
-        document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
-        let activeBubble = firstMsgDiv.querySelector('.msg-bubble');
-        lastSender = 'bot';
+            document.getElementById(containerId).appendChild(firstMsgDiv);
+            document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+            let activeBubble = firstMsgDiv.querySelector('.msg-bubble');
+            lastSender = 'bot';
 
-        let avatarSwapped = false;
+            let avatarSwapped = false;
 
-        try {
-            const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ messages })
-            });
+            try {
+                const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ messages })
+                });
 
-            if (!response.ok) throw new Error('HTTP ' + response.status);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let tokenBuffer = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let tokenBuffer = '';
 
-            outer: while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+                outer: while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-                buffer += decoder.decode(value, { stream: true });
+                    buffer += decoder.decode(value, { stream: true });
 
-                while (buffer.includes('\n')) {
-                    const idx = buffer.indexOf('\n');
-                    const line = buffer.substring(0, idx).trim();
-                    buffer = buffer.substring(idx + 1);
+                    while (buffer.includes('\n')) {
+                        const idx = buffer.indexOf('\n');
+                        const line = buffer.substring(0, idx).trim();
+                        buffer = buffer.substring(idx + 1);
 
-                    if (line.startsWith('data: ')) {
-                        const token = line.substring(6);
-                        if (token === '[DONE]') break outer;
-                        if (token.startsWith('[ERROR]')) {
-                            activeBubble.textContent = 'Sorry, the AI service is currently unavailable. Please try again later.';
-                            break outer;
-                        }
-
-                        if (!avatarSwapped) {
-                            avatarSwapped = true;
-                            const thinkingAvatar = document.getElementById('ai-thinking-avatar');
-                            if (thinkingAvatar) {
-                                thinkingAvatar.src = 'Pic/Crop_rmd.png';
-                                thinkingAvatar.removeAttribute('id');
+                        if (line.startsWith('data: ')) {
+                            const token = line.substring(6);
+                            if (token === '[DONE]') break outer;
+                            if (token.startsWith('[ERROR]')) {
+                                activeBubble.textContent = 'Sorry, the AI service is currently unavailable. Please try again later.';
+                                break outer;
                             }
-                        }
 
-                        fullReply += token;
-                        tokenBuffer += token;
+                            if (!avatarSwapped) {
+                                avatarSwapped = true;
+                                const thinkingAvatar = document.getElementById('ai-thinking-avatar');
+                                if (thinkingAvatar) {
+                                    thinkingAvatar.src = 'Pic/Crop_rmd.png';
+                                    thinkingAvatar.removeAttribute('id');
+                                }
+                            }
 
-                        const hasSentenceEnd = /[.!?\n]/.test(tokenBuffer);
-                        const isLongEnough = tokenBuffer.trim().length >= 60;
+                            fullReply += token;
+                            tokenBuffer += token;
 
-                        if (hasSentenceEnd && isLongEnough) {
-                            const breakMatch = tokenBuffer.match(/^([\s\S]*[.!?\n])\s*/);
-                            if (breakMatch) {
-                                const chunkText = renderMarkdown(breakMatch[1]);
-                                const remainder = tokenBuffer.substring(breakMatch[0].length);
+                            const hasSentenceEnd = /[.!?\n]/.test(tokenBuffer);
+                            const isLongEnough = tokenBuffer.trim().length >= 60;
 
-                                activeBubble.innerHTML = chunkText;
-                                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+                            if (hasSentenceEnd && isLongEnough) {
+                                const breakMatch = tokenBuffer.match(/^([\s\S]*[.!?\n])\s*/);
+                                if (breakMatch) {
+                                    const chunkText = renderMarkdown(breakMatch[1]);
+                                    const remainder = tokenBuffer.substring(breakMatch[0].length);
 
-                                await new Promise(r => setTimeout(r, 200));
+                                    activeBubble.innerHTML = chunkText;
+                                    document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
 
-                                const nextDiv = document.createElement('div');
-                                nextDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
-                                nextDiv.innerHTML = `
+                                    await new Promise(r => setTimeout(r, 200));
+
+                                    const nextDiv = document.createElement('div');
+                                    nextDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+                                    nextDiv.innerHTML = `
                                     <div style="width: 32px; height: 32px; flex-shrink: 0;"></div>
                                     <div class="msg-bubble" style="background: white; padding: 10px 14px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
                                 `;
-                                document.getElementById(containerId).appendChild(nextDiv);
-                                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
-                                activeBubble = nextDiv.querySelector('.msg-bubble');
-                                tokenBuffer = remainder;
+                                    document.getElementById(containerId).appendChild(nextDiv);
+                                    document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+                                    activeBubble = nextDiv.querySelector('.msg-bubble');
+                                    tokenBuffer = remainder;
+                                } else {
+                                    activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                                }
                             } else {
                                 activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
                             }
-                        } else {
-                            activeBubble.innerHTML = renderMarkdown(tokenBuffer);
-                            document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
                         }
                     }
                 }
-            }
 
-            if (tokenBuffer.trim()) {
-                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
-                document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
-            } else if (!activeBubble.innerHTML.trim()) {
-                activeBubble.closest('div').remove();
-            }
+                if (tokenBuffer.trim()) {
+                    activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                    document.querySelector('.main-content').scrollTop = document.querySelector('.main-content').scrollHeight;
+                } else if (!activeBubble.innerHTML.trim()) {
+                    activeBubble.closest('div').remove();
+                }
 
-        } catch (err) {
-            activeBubble.textContent = 'Sorry, I couldn\'t connect. Please try again.';
-        } finally {
-            chatState.isStreaming = false;
-            if (sendBtn) sendBtn.disabled = false;
+            } catch (err) {
+                activeBubble.textContent = 'Sorry, I couldn\'t connect. Please try again.';
+            } finally {
+                chatState.isStreaming = false;
+                if (sendBtn) sendBtn.disabled = false;
+                const chatInput = document.getElementById('chat-input');
+                if (chatInput) chatInput.focus();
+            }
+            return fullReply;
+        }
+
+        function showChatInput() {
+            const bar = document.getElementById('chat-input-bar');
+            const input = document.getElementById('chat-input');
+            const btn = document.getElementById('chat-send-btn');
+            if (bar) bar.classList.remove('locked');
+            if (input) { input.disabled = false; input.placeholder = 'Ask about your fertilizer…'; input.focus(); }
+            if (btn) btn.disabled = false;
+        }
+
+        async function triggerAutoJustification() {
+            if (!chatState.fieldData || chatState.isStreaming) return;
+
+            chatState.history = [
+                { role: 'system', content: buildSystemPrompt(chatState.fieldData) },
+                { role: 'user', content: `Briefly explain why ${chatState.fieldData.fertilizerName} suits my soil and crop. Plain text only, no bullet points or bold formatting, 2-4 sentences.` }
+            ];
+
+            const reply = await streamAIResponse(chatState.history);
+            if (reply) {
+                chatState.history.push({ role: 'assistant', content: reply });
+            }
+        }
+
+        async function sendChatMessage() {
+            if (chatState.isStreaming) return;
+
             const chatInput = document.getElementById('chat-input');
-            if (chatInput) chatInput.focus();
+            const text = chatInput ? chatInput.value.trim() : '';
+            if (!text) return;
+
+            addUserMessage(text);
+            chatInput.value = '';
+
+            chatState.history.push({ role: 'user', content: text });
+
+            const reply = await streamAIResponse(chatState.history);
+            if (reply) {
+                chatState.history.push({ role: 'assistant', content: reply });
+            }
         }
-        return fullReply;
-    }
 
-    function showChatInput() {
-        const bar = document.getElementById('chat-input-bar');
-        const input = document.getElementById('chat-input');
-        const btn = document.getElementById('chat-send-btn');
-        if (bar) bar.classList.remove('locked');
-        if (input) { input.disabled = false; input.placeholder = 'Ask about your fertilizer…'; input.focus(); }
-        if (btn) btn.disabled = false;
-    }
-
-    async function triggerAutoJustification() {
-        if (!chatState.fieldData || chatState.isStreaming) return;
-
-        chatState.history = [
-            { role: 'system', content: buildSystemPrompt(chatState.fieldData) },
-            { role: 'user', content: `Briefly explain why ${chatState.fieldData.fertilizerName} suits my soil and crop. Plain text only, no bullet points or bold formatting, 2-4 sentences.` }
-        ];
-
-        const reply = await streamAIResponse(chatState.history);
-        if (reply) {
-            chatState.history.push({ role: 'assistant', content: reply });
-        }
-    }
-
-    async function sendChatMessage() {
-        if (chatState.isStreaming) return;
-
-        const chatInput = document.getElementById('chat-input');
-        const text = chatInput ? chatInput.value.trim() : '';
-        if (!text) return;
-
-        addUserMessage(text);
-        chatInput.value = '';
-
-        chatState.history.push({ role: 'user', content: text });
-
-        const reply = await streamAIResponse(chatState.history);
-        if (reply) {
-            chatState.history.push({ role: 'assistant', content: reply });
-        }
-    }
-
-    document.getElementById('chat-input').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendChatMessage();
-        }
-    });
-</script>
+        document.getElementById('chat-input').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    </script>
 </body>
+
 </html>
