@@ -9,6 +9,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 import joblib
 import numpy as np
+import pandas as pd
 
 load_dotenv()
 
@@ -22,8 +23,18 @@ JWT_SECRET = os.getenv("JWT_SECRET", "dharaveda-secret-key-2026")
 
 print("SUPABASE_KEY Loaded:", "YES" if SUPABASE_KEY else "NO")
 
-model = joblib.load("crop_model.pkl")
-label_encoder = joblib.load("label_encoder.pkl")
+try:
+    model = joblib.load("crop_model.pkl")
+    label_encoder = joblib.load("label_encoder.pkl")
+except Exception as e:
+    print(f"Warning: Could not load crop models: {e}")
+
+try:
+    fert_model = joblib.load("fertilizer_model.pkl")
+    fert_encoder = joblib.load("fertilizer_encoder.pkl")
+    fert_target_encoder = joblib.load("fertilizer_target_encoder.pkl")
+except Exception as e:
+    print(f"Warning: Could not load fertilizer models: {e}")
 
 @app.route("/")
 def home():
@@ -416,6 +427,53 @@ def predict():
             "success": True,
             "crop": predicted_crop,
             "confidence": round(confidence * 100, 2)-10
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+
+@app.route("/api/fertilizer_recommend", methods=["POST"])
+def predict_fertilizer():
+    try:
+        data = request.get_json(silent=True) or request.form
+
+        # Create a DataFrame for the incoming data to match model expectations
+        sample = pd.DataFrame({
+            "Soil_Type": [data.get("Soil_Type")],
+            "Soil_pH": [float(data.get("Soil_pH") or 0)],
+            "Soil_Moisture": [float(data.get("Soil_Moisture") or 0)],
+            "Organic_Carbon": [float(data.get("Organic_Carbon") or 0)],
+            "Nitrogen_Level": [float(data.get("Nitrogen_Level") or 0)],
+            "Phosphorus_Level": [float(data.get("Phosphorus_Level") or 0)],
+            "Potassium_Level": [float(data.get("Potassium_Level") or 0)],
+            "Temperature": [float(data.get("Temperature") or 0)],
+            "Humidity": [float(data.get("Humidity") or 0)],
+            "Rainfall": [float(data.get("Rainfall") or 0)],
+            "Crop_Type": [data.get("Crop_Type")],
+            "Crop_Growth_Stage": [data.get("Crop_Growth_Stage")],
+            "Season": [data.get("Season")],
+            "Previous_Crop": [data.get("Previous_Crop")]
+        })
+
+        # Encode categorical features
+        cat_cols = ["Soil_Type", "Crop_Type", "Crop_Growth_Stage", "Season", "Previous_Crop"]
+        sample[cat_cols] = fert_encoder.transform(sample[cat_cols])
+
+        # Predict fertilizer
+        predicted_id = fert_model.predict(sample)[0]
+        predicted_fertilizer = fert_target_encoder.inverse_transform([predicted_id])[0]
+
+        # Get confidence probability
+        probabilities = fert_model.predict_proba(sample)[0]
+        confidence = float(probabilities[predicted_id])
+
+        return jsonify({
+            "success": True,
+            "fertilizer": predicted_fertilizer,
+            "confidence": round(confidence * 100, 2)
         })
 
     except Exception as e:
