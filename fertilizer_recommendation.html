@@ -238,7 +238,7 @@
             <div style="display: flex; align-items: center; gap: 10px;">
                 <img src="Pic/Crop_rmd.png" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
                 <div class="header-info">
-                    <h2>Kṣetrajña</h2>
+                    <h2>UrvaraMitra</h2>
                     <p>DharaVeda's Fertilizer recommendation system</p>
                 </div>
             </div>
@@ -267,10 +267,10 @@
                 <div class="input-group"><label>Temperature (°C)</label><input type="number" step="0.1" id="f-temp" placeholder="e.g., 20.8"></div>
                 <div class="input-group"><label>Humidity (%)</label><input type="number" step="0.1" id="f-hum" placeholder="e.g., 82.0"></div>
                 <div class="input-group"><label>Rainfall (mm)</label><input type="number" step="0.1" id="f-rain" placeholder="e.g., 202.9"></div>
-                <div class="input-group"><label>Current Crop</label><input type="text" id="f-crop" placeholder="e.g., Rice, Wheat"></div>
+                <div class="input-group"><label>Current Crop</label><select id="f-crop"><option value="Cotton">Cotton</option><option value="Maize">Maize</option><option value="Potato">Potato</option><option value="Rice">Rice</option><option value="Sugarcane">Sugarcane</option><option value="Tomato">Tomato</option><option value="Wheat">Wheat</option></select></div>
                 <div class="input-group"><label>Growth Stage</label><select id="f-stage"><option value="Sowing">Sowing</option><option value="Vegetative">Vegetative</option><option value="Flowering">Flowering</option><option value="Harvest">Harvest</option></select></div>
                 <div class="input-group"><label>Season</label><select id="f-season"><option value="Kharif">Kharif</option><option value="Rabi">Rabi</option><option value="Zaid">Zaid</option></select></div>
-                <div class="input-group"><label>Previous Crop</label><input type="text" id="f-prev" placeholder="e.g., Wheat, Potato"></div>
+                <div class="input-group"><label>Previous Crop</label><select id="f-prev"><option value="Cotton">Cotton</option><option value="Maize">Maize</option><option value="Potato">Potato</option><option value="Rice">Rice</option><option value="Sugarcane">Sugarcane</option><option value="Tomato">Tomato</option><option value="Wheat">Wheat</option></select></div>
             </div>
             <button class="submit-btn" id="submit-btn" onclick="submitForm()">
                 <i class="fa-solid fa-paper-plane"></i> Get Fertilizer
@@ -386,7 +386,7 @@
         await streamText(bubble, `Namaskaram ${userName}.`);
 
         bubble = addBotMessage();
-        await streamText(bubble, "I am Kṣetrajña, your fertilizer recommender.");
+        await streamText(bubble, "I am Urvara, your fertilizer recommender.");
 
         const loading = addLoadingMessage();
         await new Promise(r => setTimeout(r, 2000));
@@ -527,7 +527,7 @@
     };
 
     function buildSystemPrompt(fd) {
-        return `You are Kṣetrajña, a friendly agricultural advisor in the DharaVeda platform. You are mid-conversation with a farmer about their field conditions.\n\n## Field Conditions & Top Recommendation\n- Best match: ${fd.fertilizerName} (${fd.confidence}% model confidence) for crop ${fd.cropName}\n- N: ${fd.Nitrogen_Level} | P: ${fd.Phosphorus_Level} | K: ${fd.Potassium_Level}\n- Temp: ${fd.Temperature}°C | Humidity: ${fd.Humidity}% | pH: ${fd.Soil_pH} | Rainfall: ${fd.Rainfall}mm\n\n## Your Role\nYou are an advisor, not a dictator. The recommended fertilizer is a data-driven suggestion, not a command. Always remember:\n1. NEVER introduce yourself or restart the session — you are already in an ongoing conversation.\n2. If the user says hello, thanks, or anything casual, acknowledge it warmly in one short sentence and stay on the farming topic.\n3. If the user asks about alternative fertilizers, freely suggest 2-3 realistic alternatives that could work with their conditions. Explain briefly why each might or might not suit their field.\n4. You may explain why the recommended fertilizer suits their conditions, but never push it or insist the user must use it.\n5. Keep responses concise by default — 2-4 sentences for simple questions. For detailed questions (like "explain", "how to", "why", "what are all the steps", or requests for alternatives), give a thorough answer covering all relevant points. Never cut a detailed answer short just to be brief.\n6. Do NOT use markdown like **bold**, *italic*, or numbered lists. Write plain sentences only.\n7. Only discuss farming topics. Politely decline anything unrelated in one sentence.`;
+        return `You are UrvaraMitra, a friendly agricultural advisor in the DharaVeda platform. You are mid-conversation with a farmer about their field conditions.\n\n## Field Conditions & Top Recommendation\n- Best match: ${fd.fertilizerName} (${fd.confidence}% model confidence) for crop ${fd.cropName}\n- N: ${fd.Nitrogen_Level} | P: ${fd.Phosphorus_Level} | K: ${fd.Potassium_Level}\n- Temp: ${fd.Temperature}°C | Humidity: ${fd.Humidity}% | pH: ${fd.Soil_pH} | Rainfall: ${fd.Rainfall}mm\n\n## Your Role\nYou are an advisor, not a dictator. The recommended fertilizer is a data-driven suggestion, not a command. Always remember:\n1. NEVER introduce yourself or restart the session — you are already in an ongoing conversation.\n2. If the user says hello, thanks, or anything casual, acknowledge it warmly in one short sentence and stay on the farming topic.\n3. If the user asks about alternative fertilizers, freely suggest 2-3 realistic alternatives that could work with their conditions. Explain briefly why each might or might not suit their field.\n4. You may explain why the recommended fertilizer suits their conditions, but never push it or insist the user must use it.\n5. Keep responses concise by default — 2-4 sentences for simple questions. For detailed questions (like "explain", "how to", "why", "what are all the steps", or requests for alternatives), give a thorough answer covering all relevant points. Never cut a detailed answer short just to be brief.\n6. Do NOT use markdown like **bold**, *italic*, or numbered lists. Write plain sentences only.\n7. Only discuss farming topics. Politely decline anything unrelated in one sentence.`;
     }
 
     function renderMarkdown(text) {
