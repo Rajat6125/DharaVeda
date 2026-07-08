@@ -859,7 +859,7 @@
                             <div class="rec-crop-label" style="font-size: 12px;">Recommended Fertilizer</div>
                             <h2 class="rec-crop-title" style="margin-bottom: 4px; font-size: 22px;">${fertTitle}</h2>
                         </div>
-                        <img src="Pic/Fertilizers/${fertTitle.replace(/ /g, '_')}.png" onerror="this.src='Pic/Fertilizers/Compost.jpg'" style="width: 85px; height: 85px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="Pic/Fertilizers/${fertTitle.replace(/ /g, '_')}.png" onerror="this.src='Pic/Fertilizers/Compost.jpg'" style="width: 110px; height: 110px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     </div>
                     
                     <div class="rec-crop-label" style="margin-bottom: 4px;">Model Confidence</div>
@@ -1113,7 +1113,7 @@
 
             chatState.history = [
                 { role: 'system', content: buildSystemPrompt(chatState.fieldData) },
-                { role: 'user', content: `Briefly explain why ${chatState.fieldData.fertilizerName} suits my soil and crop. Plain text only, no bullet points or bold formatting, 2-4 sentences.` }
+                { role: 'user', content: `Briefly explain why ${chatState.fieldData.fertilizerName} suits my soil and crop. Make sure to explicitly mention how the Nitrogen (N), Phosphorus (P), Potassium (K), and Organic Matter levels in my field summary influence this recommendation. Plain text only, no bullet points or bold formatting, 3-5 sentences.` }
             ];
 
             const reply = await streamAIResponse(chatState.history);
