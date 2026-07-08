@@ -238,7 +238,8 @@
         }
 
         .submit-btn:disabled {
-            background: #a5cda8;
+            background: #000000;
+            color: #4ade80; /* bright green for good contrast on black */
             cursor: not-allowed;
         }
 
@@ -858,7 +859,7 @@
                             <div class="rec-crop-label" style="font-size: 12px;">Recommended Fertilizer</div>
                             <h2 class="rec-crop-title" style="margin-bottom: 4px; font-size: 22px;">${fertTitle}</h2>
                         </div>
-                        <img src="Pic/Fertilizers/${fertTitle.replace(/ /g, '_')}.png" onerror="this.src='Pic/Fertilizers/Compost.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="Pic/Fertilizers/${fertTitle.replace(/ /g, '_')}.png" onerror="this.src='Pic/Fertilizers/Compost.jpg'" style="width: 85px; height: 85px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     </div>
                     
                     <div class="rec-crop-label" style="margin-bottom: 4px;">Model Confidence</div>
@@ -896,7 +897,7 @@
                     
                     <hr class="rec-divider">
                     
-                    <div class="nutrient-title">Nutrient Contribution (per ha)</div>
+                    <div class="nutrient-title">Field Summary</div>
                     <div class="nutrient-grid">
                         <div class="nutrient-card">
                             <div class="nutrient-icon n">N</div>

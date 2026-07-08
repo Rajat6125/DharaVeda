@@ -105,7 +105,7 @@
             display:flex; justify-content:center; align-items:center; gap:8px; transition:background 0.2s;
         }
         .submit-btn:hover { background:#2D5230; }
-        .submit-btn:disabled { background:#a5cda8; cursor:not-allowed; }
+        .submit-btn:disabled { background:#000000; color:#4ade80; cursor:not-allowed; }
         
         /* Recommendation Card */
         .rec-card {
@@ -165,6 +165,13 @@
             white-space: normal; overflow: hidden;
         }
         .rec-data-item span { font-weight: 700; color: #222; font-size: 11px; }
+        
+        .rec-footer-text {
+            font-size: 10px;
+            color: #999;
+            line-height: 1.4;
+            margin-top: 14px;
+        }
 
         /* AI Chat input bar */
         #chat-input-bar {
@@ -507,6 +514,9 @@
                                 <div class="rec-data-item">Soil pH <span>${fPh.value.trim()}</span></div>
                             </div>
                         </div>
+                    </div>
+                    <div class="rec-footer-text">
+                        Recommendations are AI-generated and may vary based on real-time field conditions.
                     </div>
                 </div>`;
             resultContainer.style.display = 'block';
