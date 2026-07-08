@@ -480,6 +480,88 @@
         #chat-input-bar.locked .chat-leaf-icon {
             opacity: 0.3;
         }
+
+        /* New Results Card Styles */
+        .field-summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+            margin-bottom: 20px;
+        }
+        .field-summary-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        .field-summary-icon {
+            width: 32px;
+            color: var(--accent-green);
+            font-size: 14px;
+        }
+        .field-summary-label {
+            width: 120px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .field-summary-value {
+            color: var(--text-secondary);
+        }
+        .nutrient-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        .nutrient-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .nutrient-card {
+            background: #fafafa;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nutrient-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .nutrient-icon.n { background: #e8f5e9; color: #2e7d32; }
+        .nutrient-icon.k { background: #f3e5f5; color: #7b1fa2; }
+        .nutrient-icon.p { background: #fff3e0; color: #ef6c00; }
+        .nutrient-icon.om { background: #e8f5e9; color: #2e7d32; font-size: 12px; }
+        .nutrient-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .nutrient-name {
+            font-size: 10px;
+            color: #777;
+        }
+        .nutrient-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+        }
+        .rec-footer-text {
+            font-size: 10px;
+            color: #999;
+            line-height: 1.4;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -770,25 +852,84 @@
                         </div>
                         <p class="rec-subtitle">Based on the provided field details, our AI model suggests the best fertilizer.</p>
                     </div>
-                    <div class="rec-content">
-                        <div class="rec-info-box">
-                            <div class="rec-crop-label">Recommended Fertilizer</div>
-                            <h2 class="rec-crop-title">${fertTitle}</h2>
-                            
-                            <div class="rec-confidence-bar">
-                                <div class="rec-confidence-fill" style="width: ${score}%; background: ${barColor};"></div>
-                            </div>
-                            <span class="rec-confidence-text" style="color: ${barColor};">${score}%</span>
-                            
-                            <hr class="rec-divider">
-                            
-                            <div class="rec-data-grid">
-                                <div class="rec-data-item">Nitrogen <span>${payload.Nitrogen_Level} kg/ha</span></div>
-                                <div class="rec-data-item">Potassium <span>${payload.Potassium_Level} kg/ha</span></div>
-                                <div class="rec-data-item">Phosphorus <span>${payload.Phosphorus_Level} kg/ha</span></div>
-                                <div class="rec-data-item">Soil pH <span>${payload.Soil_pH}</span></div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <div class="rec-crop-label" style="font-size: 12px;">Recommended Fertilizer</div>
+                            <h2 class="rec-crop-title" style="margin-bottom: 4px; font-size: 22px;">${fertTitle}</h2>
+                        </div>
+                        <img src="Pic/Fertilizers/${fertTitle.replace(/ /g, '_')}.png" onerror="this.src='Pic/Fertilizers/Compost.jpg'" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    </div>
+                    
+                    <div class="rec-crop-label" style="margin-bottom: 4px;">Model Confidence</div>
+                    <div class="rec-confidence-bar">
+                        <div class="rec-confidence-fill" style="width: ${score}%; background: ${barColor};"></div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                        <span class="rec-confidence-text" style="color: ${barColor}; margin-bottom: 0;">${score}%</span>
+                    </div>
+                    
+                    <hr class="rec-divider">
+                    
+                    <div class="field-summary-list">
+                        <div class="field-summary-item">
+                            <i class="fa-solid fa-seedling field-summary-icon"></i>
+                            <span class="field-summary-label">Crop</span>
+                            <span class="field-summary-value">${payload.Crop_Type}</span>
+                        </div>
+                        <div class="field-summary-item">
+                            <i class="fa-solid fa-leaf field-summary-icon"></i>
+                            <span class="field-summary-label">Growth Stage</span>
+                            <span class="field-summary-value">${payload.Crop_Growth_Stage}</span>
+                        </div>
+                        <div class="field-summary-item">
+                            <i class="fa-regular fa-calendar field-summary-icon"></i>
+                            <span class="field-summary-label">Season</span>
+                            <span class="field-summary-value">${payload.Season}</span>
+                        </div>
+                        <div class="field-summary-item">
+                            <i class="fa-solid fa-droplet field-summary-icon"></i>
+                            <span class="field-summary-label">Soil pH</span>
+                            <span class="field-summary-value">${payload.Soil_pH}</span>
+                        </div>
+                    </div>
+                    
+                    <hr class="rec-divider">
+                    
+                    <div class="nutrient-title">Nutrient Contribution (per ha)</div>
+                    <div class="nutrient-grid">
+                        <div class="nutrient-card">
+                            <div class="nutrient-icon n">N</div>
+                            <div class="nutrient-details">
+                                <span class="nutrient-name">Nitrogen (N)</span>
+                                <span class="nutrient-val">${payload.Nitrogen_Level} kg/ha</span>
                             </div>
                         </div>
+                        <div class="nutrient-card">
+                            <div class="nutrient-icon k">K</div>
+                            <div class="nutrient-details">
+                                <span class="nutrient-name">Potassium (K)</span>
+                                <span class="nutrient-val">${payload.Potassium_Level} kg/ha</span>
+                            </div>
+                        </div>
+                        <div class="nutrient-card">
+                            <div class="nutrient-icon p">P</div>
+                            <div class="nutrient-details">
+                                <span class="nutrient-name">Phosphorus (P)</span>
+                                <span class="nutrient-val">${payload.Phosphorus_Level} kg/ha</span>
+                            </div>
+                        </div>
+                        <div class="nutrient-card">
+                            <div class="nutrient-icon om"><i class="fa-solid fa-leaf"></i></div>
+                            <div class="nutrient-details">
+                                <span class="nutrient-name">Organic Matter</span>
+                                <span class="nutrient-val">${payload.Organic_Carbon}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="rec-footer-text">
+                        Recommendations are AI-generated and may vary based on real-time field conditions.
                     </div>
                 </div>`;
                 resultContainer.style.display = 'block';
