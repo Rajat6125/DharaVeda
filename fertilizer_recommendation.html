@@ -199,6 +199,7 @@
 
         .input-group input,
         .input-group select {
+            width: 100%;
             padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid rgba(0, 0, 0, 0.1);
@@ -388,13 +389,13 @@
             align-items: center;
             gap: 10px;
             padding: 12px 16px 14px;
-            background: rgba(255, 255, 255, 0.96);
-            border-top: 1px solid rgba(59, 107, 63, 0.10);
+            background: transparent;
+            border-top: none;
             flex-shrink: 0;
             position: sticky;
             bottom: 0;
             z-index: 10;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: none;
         }
 
         #chat-input-wrap {
@@ -402,22 +403,25 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #f0f6f1;
-            border: 1.5px solid rgba(59, 107, 63, 0.18);
+            background: rgba(30, 42, 31, 0.85); /* Dark background */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 28px;
-            padding: 8px 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            padding: 10px 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
         }
 
         #chat-input-wrap:focus-within {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(59, 107, 63, 0.10);
+            border-color: #4ade80; /* bright green */
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
         }
 
         #chat-input-wrap .chat-leaf-icon {
             font-size: 14px;
-            color: var(--accent-green);
-            opacity: 0.6;
+            color: #4ade80; /* Bright green */
+            opacity: 0.9;
             flex-shrink: 0;
         }
 
@@ -428,12 +432,12 @@
             font-size: 13px;
             font-family: var(--font-family);
             outline: none;
-            color: var(--text-primary);
+            color: #ffffff; /* Bright text */
             min-width: 0;
         }
 
         #chat-input::placeholder {
-            color: #aaa;
+            color: rgba(255, 255, 255, 0.6);
         }
 
         #chat-input:disabled {
@@ -445,21 +449,22 @@
             height: 42px;
             border-radius: 50%;
             border: none;
-            background: var(--accent-green);
-            color: white;
+            background: #1E2A1F; /* Dark background */
+            color: #4ade80; /* Bright icon */
             font-size: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(59, 107, 63, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #chat-send-btn:hover:not(:disabled) {
-            background: #2D5230;
-            box-shadow: 0 4px 12px rgba(59, 107, 63, 0.4);
+            background: #2a3a2b; /* Slightly lighter dark */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         #chat-send-btn:active:not(:disabled) {
@@ -467,19 +472,23 @@
         }
 
         #chat-send-btn:disabled {
-            background: #c8ddc9;
+            background: #333333;
+            color: #777777;
             box-shadow: none;
             cursor: not-allowed;
             opacity: 0.7;
         }
 
         #chat-input-bar.locked #chat-input-wrap {
-            background: #f5f5f5;
-            border-color: rgba(0, 0, 0, 0.08);
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         #chat-input-bar.locked .chat-leaf-icon {
             opacity: 0.3;
+            color: #ffffff;
         }
 
         /* New Results Card Styles */
@@ -733,7 +742,7 @@
                 : `<div style="width: 32px; height: 32px; flex-shrink: 0;"></div>`;
 
             msgDiv.innerHTML = `
-            <div class="msg-bubble" style="background: var(--accent-green); color: white; padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; max-width: 85%;">
+            <div class="msg-bubble" style="background: #FDE047; color: var(--text-primary); padding: 10px 14px; border-radius: 12px; ${showAvatar ? 'border-top-right-radius: 0;' : ''} box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; max-width: 85%;">
                 ${text}
             </div>
             ${avatarHtml}
