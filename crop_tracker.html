@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DharaVeda - Crop Tracker</title>
+    <link rel="icon" href="Pic/0Logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #FDF7EC;
+            --text-primary: #1E2A1F;
+            --text-secondary: #555555;
+            --accent-orange: #F2994A;
+            --accent-green: #3B6B3F;
+            --light-green: #E8F5E9;
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('Pic/Village.jpg');
+            background-size: cover;
+            background-position: center top;
+            z-index: -1;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: rgba(18, 0, 0, 0.052);
+            backdrop-filter: blur(3px);
+            position: relative;
+            padding-bottom: 100px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+        }
+
+        /* User Header */
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px 10px;
+        }
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0,0,0,0.05);
+            padding: 8px;
+            object-fit: contain;
+        }
+        .user-header-center {
+            flex: 1;
+            padding: 0 15px;
+        }
+        .user-header-center h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .user-header-center h1 .name {
+            color: var(--accent-green);
+        }
+        .user-header-center .email {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .user-header-center .location {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Weather Widget */
+        .weather-widget {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 10px 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .weather-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .weather-icon {
+            font-size: 32px;
+            color: #F2C94C;
+        }
+        .weather-temp {
+            display: flex;
+            flex-direction: column;
+        }
+        .weather-temp h2 {
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .weather-temp p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .weather-details {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 1px solid #E0E0E0;
+            padding-left: 16px;
+        }
+        .weather-details div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Quick Actions Section */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .tracker-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 0 20px;
+            margin-bottom: 24px;
+        }
+        
+        .tracker-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .tracker-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .tracker-card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .tracker-card-content {
+            flex: 1;
+            text-align: left;
+            margin-right: 32px;
+        }
+        
+        .tracker-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-green);
+            margin-bottom: 6px;
+        }
+        
+        .tracker-card p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 0;
+        }
+        
+        .tracker-card .arrow-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #F1F8E9;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent-green);
+            font-size: 10px;
+        }
+
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 24px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .nav-item.active {
+            color: var(--accent-green);
+        }
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- User Header Section -->
+    <div class="user-header">
+        <div class="user-header-left">
+            <img src="Pic/0Logo.png" alt="Logo" class="logo-circle">
+        </div>
+        <div class="user-header-center">
+            <h1 class="greeting">Good <span id="greeting-text">Morning</span>, <span class="name" id="user-name">User</span></h1>
+            <p class="email" id="user-email">email@example.com</p>
+            <p class="location"><i class="fa-solid fa-location-dot"></i> <span id="user-location-text">Loading...</span></p>
+        </div>
+        <div class="user-header-right">
+            <img src="Pic/farmer.jpg" alt="Farmer" class="profile-pic" onerror="this.src='Pic/0Logo.png'">
+        </div>
+    </div>
+
+    <!-- Weather Widget -->
+    <div class="weather-widget">
+        <div class="weather-left">
+            <i id="weather-icon" class="fa-solid fa-cloud-sun weather-icon"></i>
+            <div class="weather-temp">
+                <h2 id="weather-temp">--°C</h2>
+                <p id="weather-desc">Loading...</p>
+            </div>
+        </div>
+        <div class="weather-details">
+            <div><i class="fa-solid fa-droplet" style="color: #64B5F6;"></i> Humidity <span id="weather-humidity">--%</span></div>
+            <div><i class="fa-solid fa-wind" style="color: #90A4AE;"></i> Wind <span id="weather-wind">-- km/h</span></div>
+        </div>
+    </div>
+
+    <h3 class="section-title">Tools</h3>
+
+    <!-- Tracker Actions -->
+    <div class="tracker-actions">
+        <!-- Crop Register -->
+        <a href="#" class="tracker-card">
+            <div class="tracker-card-icon">🌱</div>
+            <div class="tracker-card-content">
+                <h4>Crop Register</h4>
+                <p>Register new crops and manage your field details.</p>
+            </div>
+            <div class="arrow-btn"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+
+        <!-- Add Logs -->
+        <a href="#" class="tracker-card">
+            <div class="tracker-card-icon">📝</div>
+            <div class="tracker-card-content">
+                <h4>Add Logs</h4>
+                <p>Record activities, inputs, and observations.</p>
+            </div>
+            <div class="arrow-btn"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+
+        <!-- Crop Tracker -->
+        <a href="#" class="tracker-card">
+            <div class="tracker-card-icon">🔍</div>
+            <div class="tracker-card-content">
+                <h4>Crop Tracker</h4>
+                <p>Track crop growth, stages, and field progress.</p>
+            </div>
+            <div class="arrow-btn"><i class="fa-solid fa-chevron-right"></i></div>
+        </a>
+    </div>
+
+
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        Home
+    </a>
+    <a href="crop_tracker.html" class="nav-item active">
+        <i class="fa-solid fa-chart-simple"></i>
+        Tracker
+    </a>
+    <a href="error.html" class="nav-item">
+        <i class="fa-solid fa-robot"></i>
+        AI Assistant
+    </a>
+    <a href="error.html" class="nav-item">
+        <i class="fa-regular fa-bell"></i>
+        Alerts
+    </a>
+    <a href="error.html" class="nav-item">
+        <i class="fa-regular fa-user"></i>
+        Profile
+    </a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Dynamic Greeting Logic
+        const hour = new Date().getHours();
+        const greetingText = document.getElementById('greeting-text');
+        if (hour < 12) {
+            greetingText.textContent = 'Morning';
+        } else if (hour < 17) {
+            greetingText.textContent = 'Afternoon';
+        } else {
+            greetingText.textContent = 'Evening';
+        }
+
+        // Check for JWT token & user info
+        const token = localStorage.getItem('dharaveda_token');
+        const userDataStr = localStorage.getItem('dharaveda_user');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        let userDistrict = 'New Delhi';
+        let userState = '';
+
+        if (userDataStr) {
+            try {
+                const userData = JSON.parse(userDataStr);
+                if (userData) {
+                    const firstName = userData.name ? userData.name.split(' ')[0] : 'User';
+                    document.getElementById('user-name').textContent = firstName;
+                    document.getElementById('user-email').textContent = userData.email_phone || 'User';
+                    
+                    if (userData.district) userDistrict = userData.district;
+                    if (userData.state) userState = userData.state;
+                    
+                    let locationString = userDistrict;
+                    if (userState) locationString += `, ${userState}`;
+                    document.getElementById('user-location-text').textContent = locationString + ', India';
+                }
+            } catch (e) {
+                console.error("Error parsing user data");
+            }
+        }
+
+        // Weather Fetching Logic & Storing Lat/Lon
+        const weatherApiKey = 'a4a671880d4e7010630acb53da056a1c';
+
+        function updateWeatherByLocation(district, state) {
+            let query = 'New Delhi,IN';
+            if (district && state) {
+                query = `${district},${state},IN`;
+            } else if (district) {
+                query = `${district},IN`;
+            }
+            
+            const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${weatherApiKey}`;
+            
+            fetch(geoUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Geocoding data not found for " + query);
+                    return response.json();
+                })
+                .then(geoData => {
+                    if (!geoData || geoData.length === 0) {
+                        throw new Error("No coordinates found for " + query);
+                    }
+                    
+                    let lat = geoData[0].lat;
+                    let lon = geoData[0].lon;
+                    
+                    if (state && geoData.length > 1) {
+                        const targetState = state.toLowerCase();
+                        const match = geoData.find(loc => loc.state && loc.state.toLowerCase().includes(targetState));
+                        if (match) {
+                            lat = match.lat;
+                            lon = match.lon;
+                        }
+                    }
+
+                    // Save locally for future use
+                    localStorage.setItem('dharaveda_lat', lat);
+                    localStorage.setItem('dharaveda_lon', lon);
+
+                    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&units=metric`;
+                    return fetch(weatherUrl);
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Weather data not found");
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('weather-temp').textContent = Math.round(data.main.temp) + '°C';
+                    // Use a more descriptive condition (e.g. Partly Cloudy instead of just Clouds)
+                    let weatherDesc = data.weather[0].main;
+                    if(weatherDesc === 'Clouds' && data.clouds.all < 50) weatherDesc = 'Partly Cloudy';
+                    
+                    document.getElementById('weather-desc').textContent = weatherDesc;
+                    document.getElementById('weather-humidity').textContent = data.main.humidity + '%';
+                    document.getElementById('weather-wind').textContent = Math.round(data.wind.speed * 3.6) + ' km/h';
+                    
+                    const iconMap = {
+                        'Clear': 'fa-sun',
+                        'Clouds': 'fa-cloud',
+                        'Rain': 'fa-cloud-rain',
+                        'Drizzle': 'fa-cloud-rain',
+                        'Thunderstorm': 'fa-bolt',
+                        'Snow': 'fa-snowflake',
+                        'Mist': 'fa-smog',
+                        'Fog': 'fa-smog',
+                        'Haze': 'fa-smog'
+                    };
+                    const weatherMain = data.weather[0].main;
+                    const iconClass = iconMap[weatherMain] || 'fa-cloud-sun';
+                    const iconEl = document.getElementById('weather-icon');
+                    
+                    if(weatherDesc === 'Partly Cloudy') {
+                        iconEl.className = 'fa-solid fa-cloud-sun weather-icon';
+                    } else {
+                        iconEl.className = `fa-solid ${iconClass} weather-icon`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching weather:", err);
+                    if (district !== 'New Delhi') {
+                        updateWeatherByLocation('New Delhi', '');
+                    }
+                });
+        }
+
+        updateWeatherByLocation(userDistrict, userState);
+    });
+</script>
+
+</body>
+</html>
