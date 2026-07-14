@@ -233,6 +233,135 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/estimate_harvest', methods=['POST'])
+def estimate_harvest():
+    try:
+        data = request.get_json()
+        crop = data.get("crop", "")
+        area = data.get("area", "")
+        sowing_date = data.get("sowing_date", "")
+        
+        if not crop or not sowing_date:
+            return jsonify({"success": False, "error": "crop and sowing_date are required"}), 400
+            
+        prompt = f"Given the crop '{crop}', an area of {area} acres, and a sowing date of {sowing_date}, what is the expected harvest date? Please reply ONLY with the exact date string in YYYY-MM-DD format, no introductory text."
+        
+        api_key = os.getenv("OPENROUTER_API_KEY", "")
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        # Use a fast model specifically for this quick extraction
+        payload = {
+            "model": "google/gemma-3-27b-it:free",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 15,
+            "stream": False
+        }
+        
+        resp = requests.post("https://openrouter.ai/api/v1/chat/completions", json=payload, headers=headers, timeout=15)
+        
+        expected_harvest = None
+        if resp.ok:
+            result = resp.json()
+            reply = result["choices"][0]["message"]["content"]
+            # Extract YYYY-MM-DD
+            import re
+            match = re.search(r'\d{4}-\d{2}-\d{2}', reply)
+            if match:
+                expected_harvest = match.group(0)
+                
+        if not expected_harvest:
+            # Fallback to +120 days if AI fails or returns weird output
+            from datetime import datetime, timedelta
+            try:
+                sowing = datetime.strptime(sowing_date, "%Y-%m-%d")
+                expected_harvest = (sowing + timedelta(days=120)).strftime("%Y-%m-%d")
+            except:
+                expected_harvest = sowing_date
+                
+        return jsonify({"success": True, "expected_harvest": expected_harvest})
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/add_crop', methods=['POST'])
+def add_crop():
+    try:
+        data = request.get_json()
+        email_phone = data.get("email_phone")
+        crop = data.get("crop")
+        area = data.get("area")
+        sowing_date = data.get("sowing_date")
+        expected_harvest = data.get("expected_harvest")
+        latt = data.get("latt")
+        long = data.get("long")
+        district = data.get("district")
+        state = data.get("state")
+        
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}"
+        }
+        
+        # 1. Get farmer_id
+        user_resp = requests.get(
+            SUPABASE_URL,
+            headers=headers,
+            params={"select": "*", "Email_Phone": f"eq.{email_phone}"}
+        )
+        
+        if user_resp.status_code != 200:
+            return jsonify({"error": f"Database error (status {user_resp.status_code}): {user_resp.text}"}), 400
+            
+        users = user_resp.json()
+        if len(users) == 0:
+            return jsonify({"error": f"User not found for email/phone: '{email_phone}'"}), 404
+            
+        user = users[0]
+        # Try to find the ID column regardless of casing
+        farmer_id = user.get("id") or user.get("ID") or user.get("Id") or user.get("farmer_id") or user.get("Farmer_id")
+        
+        if not farmer_id:
+            return jsonify({"error": f"Could not find an 'id' column for user. Found columns: {list(user.keys())}"}), 400
+            
+        # 2. Insert into crop_system
+        crop_system_url = "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system"
+        
+        payload = {
+            "farmer_id": farmer_id,
+            "crop": crop,
+            "Area": int(area),
+            "sowing_date": sowing_date,
+            "expected_harvest": expected_harvest,
+            "current_stage": "Sowed",
+            "age": 0,
+            "health_score": 0,
+            "growth_progress": 0,
+            "latt": float(latt) if latt else 0.0,
+            "long": float(long) if long else 0.0,
+            "district": district,
+            "state": state
+        }
+        
+        headers["Content-Type"] = "application/json"
+        headers["Prefer"] = "return=representation"
+        
+        insert_resp = requests.post(
+            crop_system_url,
+            json=payload,
+            headers=headers
+        )
+        
+        if insert_resp.status_code in [200, 201]:
+            return jsonify({"success": True, "data": insert_resp.json()}), 201
+        else:
+            return jsonify({"error": f"Failed to add crop: {insert_resp.text}"}), insert_resp.status_code
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/ai_chat", methods=["POST"])
 def ai_chat():
     """
