@@ -42,7 +42,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-image: url('Pic/Village.jpg');
+            background-image: url('Pic/Picture.jpg');
             background-size: cover;
             background-position: center top;
             z-index: -1;
@@ -184,7 +184,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.04);
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.5s;
             text-decoration: none;
             color: var(--text-primary);
         }
@@ -282,17 +282,14 @@
 <div class="app-container">
     
     <!-- User Header Section -->
-    <div class="user-header">
+    <div class="user-header" style="justify-content: flex-start; align-items: center; gap: 20px;">
         <div class="user-header-left">
-            <img src="Pic/0Logo.png" alt="Logo" class="logo-circle">
+            <img src="Pic/lady_bot.png" alt="Bot" style="width: 105px; height: 105px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" onerror="this.src='Pic/0Logo.png'">
         </div>
-        <div class="user-header-center">
-            <h1 class="greeting">Good <span id="greeting-text">Morning</span>, <span class="name" id="user-name">User</span></h1>
-            <p class="email" id="user-email">email@example.com</p>
-            <p class="location"><i class="fa-solid fa-location-dot"></i> <span id="user-location-text">Loading...</span></p>
-        </div>
-        <div class="user-header-right">
-            <img src="Pic/farmer.jpg" alt="Farmer" class="profile-pic" onerror="this.src='Pic/0Logo.png'">
+        <div class="user-header-center" style="padding: 0; display: flex; flex-direction: column; justify-content: center; height: 105px;">
+            <h1 class="greeting" style="margin: 0; line-height: 1.2; font-size: 19px;">Good <span id="greeting-text">Morning</span>, <span id="user-first-name" style="color: var(--accent-green);">User</span></h1>
+            <div class="name" id="user-name" style="font-size: 14px; word-break: break-all; font-weight: 500; color: var(--text-secondary); margin-top: 4px; margin-bottom: 6px;">email@example.com</div>
+            <p class="location" style="margin: 0; font-size: 13px;"><i class="fa-solid fa-location-dot"></i> <span id="user-location-text">Loading...</span></p>
         </div>
     </div>
 
@@ -311,12 +308,16 @@
         </div>
     </div>
 
-    <h3 class="section-title">Tools</h3>
+    <div class="welcome-message-container" style="padding: 0 20px; margin-bottom: 20px;">
+        <p id="welcome-typing-text" style="font-size: 15px; font-weight: 800; color: var(--black); min-height: 22px; margin: 0;"></p>
+    </div>
+
+    <h3 class="section-title" id="tools-title" style="opacity: 0; transform: translateY(10px); transition: all 0.4s ease;">Tools</h3>
 
     <!-- Tracker Actions -->
-    <div class="tracker-actions">
+    <div class="tracker-actions" id="tracker-actions" style="opacity: 0; transform: translateY(20px); transition: all 0.8s ease;">
         <!-- Crop Register -->
-        <a href="#" class="tracker-card">
+        <a href="crop_register.html" class="tracker-card">
             <div class="tracker-card-icon">🌱</div>
             <div class="tracker-card-content">
                 <h4>Crop Register</h4>
@@ -326,7 +327,7 @@
         </a>
 
         <!-- Add Logs -->
-        <a href="#" class="tracker-card">
+        <a href="error.html" class="tracker-card">
             <div class="tracker-card-icon">📝</div>
             <div class="tracker-card-content">
                 <h4>Add Logs</h4>
@@ -336,7 +337,7 @@
         </a>
 
         <!-- Crop Tracker -->
-        <a href="#" class="tracker-card">
+        <a href="error.html" class="tracker-card">
             <div class="tracker-card-icon">🔍</div>
             <div class="tracker-card-content">
                 <h4>Crop Tracker</h4>
@@ -401,10 +402,29 @@
         if (userDataStr) {
             try {
                 const userData = JSON.parse(userDataStr);
+                
+                // Extract email from token since it might not be in userData
+                let displayEmail = 'User';
+                if (token) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        if (payload && payload.email_phone) {
+                            displayEmail = payload.email_phone;
+                        }
+                    } catch (e) {
+                        console.error("Error decoding token");
+                    }
+                }
+                if (displayEmail === 'User' && userData && userData.email_phone) {
+                    displayEmail = userData.email_phone;
+                }
+
                 if (userData) {
                     const firstName = userData.name ? userData.name.split(' ')[0] : 'User';
-                    document.getElementById('user-name').textContent = firstName;
-                    document.getElementById('user-email').textContent = userData.email_phone || 'User';
+                    const firstNameEl = document.getElementById('user-first-name');
+                    if(firstNameEl) firstNameEl.textContent = firstName;
+
+                    document.getElementById('user-name').textContent = displayEmail;
                     
                     if (userData.district) userDistrict = userData.district;
                     if (userData.state) userState = userData.state;
@@ -504,6 +524,34 @@
         }
 
         updateWeatherByLocation(userDistrict, userState);
+
+        // Animation and Typing effect
+        const welcomeText = "Welcome to Krsipatha : Our Ai based crop tracker.";
+        const typingElement = document.getElementById('welcome-typing-text');
+        const toolsTitle = document.getElementById('tools-title');
+        const trackerActions = document.getElementById('tracker-actions');
+        
+        let charIndex = 0;
+        function typeText() {
+            if (charIndex < welcomeText.length) {
+                typingElement.innerHTML += welcomeText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeText, 35); // Typing speed
+            }
+        }
+        
+        // Start typing shortly after load
+        setTimeout(typeText, 300);
+
+        // Cards appear exactly after 2 seconds
+        setTimeout(() => {
+            if (toolsTitle && trackerActions) {
+                toolsTitle.style.opacity = '1';
+                toolsTitle.style.transform = 'translateY(0)';
+                trackerActions.style.opacity = '1';
+                trackerActions.style.transform = 'translateY(0)';
+            }
+        }, 2000);
     });
 </script>
 

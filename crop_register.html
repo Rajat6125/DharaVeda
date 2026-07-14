@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DharaVeda - Krsipanji</title>
+    <link rel="icon" href="Pic/0Logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --text-primary: #172A21;
+            --text-secondary: #556B59;
+            --accent-green: #234E35;
+            --bg-input: #F8FAF9;
+            --font-family: 'Outfit', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html, body { height: 100%; }
+        body {
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            background-color: #f4f4f4;
+            overflow: hidden;
+        }
+        body::before {
+            content:'';
+            position:fixed; top:0; left:0;
+            width:100%; height:100%;
+            background-image: url('Pic/track1.jpg');
+            background-size:cover; background-position:center;
+            z-index:-1;
+        }
+        .app-container {
+            width:100%; max-width:480px;
+            height: 100vh;
+            position:relative; display:flex; flex-direction:column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding-bottom: 40px;
+        }
+        .top-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 20px;
+            z-index:10;
+        }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 16px; color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .header-title-container {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .header-title-container img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid white;
+        }
+        .header-info h2 { font-size:18px; font-weight:700; color:var(--text-primary); }
+        .header-info p { font-size:11px; color:var(--text-secondary); }
+        
+        .weather-widget {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 16px;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .weather-widget i { font-size: 20px; color: #F59E0B; }
+        .weather-widget-info h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .weather-widget-info p { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+
+        .welcome-section {
+            padding: 20px 24px;
+            margin-top: 10px;
+        }
+        .welcome-section h1 {
+            font-size: 26px; font-weight: 700; color: var(--accent-green);
+            margin-bottom: 6px;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.5);
+        }
+        .welcome-section p {
+            font-size: 14px; font-weight: 500; color: #3A4D3E;
+        }
+
+        .form-card {
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 24px;
+            margin: 0 20px 20px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            animation: fadeIn 0.4s ease;
+        }
+        .form-header { 
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+        }
+        .form-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #E8F0EA; color: var(--accent-green);
+            display: flex; justify-content: center; align-items: center; font-size: 16px;
+        }
+        .form-header h3 { font-size:18px; font-weight: 700; color:var(--accent-green); }
+        
+        .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+        .form-group { flex: 1; display:flex; flex-direction:column; gap:6px; }
+        .form-group label { font-size:12px; font-weight:500; color:var(--text-secondary); }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--text-secondary); font-size: 14px; }
+        .form-group input, .form-group select {
+            padding: 14px 14px 14px 38px; border-radius: 12px; border: 1px solid #E2E8E4;
+            background: var(--bg-input); font-size: 14px; font-weight: 500; font-family: var(--font-family); 
+            outline: none; width: 100%; color: var(--text-primary); transition: all 0.2s;
+            appearance: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color:var(--accent-green); background: white; }
+        
+        .submit-btn {
+            width:100%; background:var(--accent-green); color:white; border:none;
+            padding:16px; border-radius:14px; font-size:15px; font-weight:600;
+            font-family:var(--font-family); cursor:pointer;
+            display:flex; justify-content:center; align-items:center; gap:8px; transition:all 0.2s;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(35, 78, 53, 0.2);
+        }
+        .submit-btn:hover { background:#1A3A27; transform: translateY(-1px); }
+        .submit-btn:disabled { background:#556B59; cursor:not-allowed; transform: none; box-shadow: none; }
+
+        .separator-container {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin: 10px 20px 20px 20px;
+            display: none;
+        }
+        .separator-line { flex: 1; height: 1px; background: rgba(35, 78, 53, 0.2); }
+        .typing-text {
+            font-size: 13px; font-weight: 600; color: var(--accent-green);
+            text-align: center; display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .split-form { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
+        .split-img {
+            flex: 0 0 110px; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .split-img img { width: 100%; height: 100%; object-fit: cover; }
+        .split-inputs { flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+
+        @media (max-width: 400px) {
+            .split-form { flex-direction: column; }
+            .split-img { height: 140px; }
+        }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f4f4; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.4s;">
+    <img src="Pic/loading.gif" alt="Loading..." style="width: 100px; border-radius: 60%;">
+</div>
+
+<div class="app-container">
+    <div class="top-header">
+        <button class="back-btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="header-title-container">
+            <img src="Pic/0Logo.png" alt="Logo">
+            <div class="header-info">
+                <h2>Krsipanji</h2>
+                <p>Register the crops for seamless tracking and live analytics</p>
+            </div>
+        </div>
+        <div class="weather-widget">
+            <i class="fa-solid fa-sun" id="weather-icon"></i>
+            <div class="weather-widget-info">
+                <h4 id="weather-temp">--°C</h4>
+                <p id="weather-loc">Loading</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="welcome-section">
+        <h1 id="welcome-title"></h1>
+        <p id="welcome-subtitle"></p>
+    </div>
+
+    <div class="form-card" id="form-crop" style="display: none;">
+        <div class="form-header">
+            <div class="form-icon"><i class="fa-solid fa-leaf"></i></div>
+            <h3>Crop Registration</h3>
+        </div>
+        <form id="crop-reg-form">
+            <div class="form-row">
+                <div class="form-group" style="flex: 1.5;">
+                    <label>Crop Name</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-seedling"></i>
+                        <select id="crop" required>
+                            <option value="" disabled selected>Select...</option>
+                            <option value="Rice">Rice</option>
+                            <option value="Wheat">Wheat</option>
+                            <option value="Maize">Maize</option>
+                            <option value="Chickpea">Chickpea</option>
+                            <option value="Kidneybeans">Kidneybeans</option>
+                            <option value="Pigeonpeas">Pigeonpeas</option>
+                            <option value="Mothbeans">Mothbeans</option>
+                            <option value="Mungbean">Mungbean</option>
+                            <option value="Blackgram">Blackgram</option>
+                            <option value="Lentil">Lentil</option>
+                            <option value="Pomegranate">Pomegranate</option>
+                            <option value="Banana">Banana</option>
+                            <option value="Mango">Mango</option>
+                            <option value="Grapes">Grapes</option>
+                            <option value="Watermelon">Watermelon</option>
+                            <option value="Muskmelon">Muskmelon</option>
+                            <option value="Apple">Apple</option>
+                            <option value="Orange">Orange</option>
+                            <option value="Papaya">Papaya</option>
+                            <option value="Coconut">Coconut</option>
+                            <option value="Cotton">Cotton</option>
+                            <option value="Jute">Jute</option>
+                            <option value="Coffee">Coffee</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                            <option value="Tomato">Tomato</option>
+                            <option value="Potato">Potato</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Area (acres)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-map"></i>
+                        <input type="number" id="area" placeholder="e.g. 5" min="1" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sowing Date</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="date" id="sowing_date" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn" id="btn-crop">Register Crop</button>
+        </form>
+    </div>
+
+    <div class="separator-container" id="separator-div">
+        <div class="separator-line"></div>
+        <div class="typing-text">🌿 <span id="typing-text-span"></span> 🌿</div>
+        <div class="separator-line"></div>
+    </div>
+
+    <div class="form-card" id="form-condition" style="display: none;">
+        <div class="form-header" style="margin-bottom: 8px;">
+            <div class="form-icon"><i class="fa-solid fa-leaf"></i></div>
+            <h3>Initial Crop and Farm Details</h3>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Based on the provided field details, please share your current field conditions.</p>
+        <form id="condition-reg-form">
+            <div class="split-form">
+                <div class="split-img" style="flex: 0 0 130px; height: 150px; border-radius: 16px;">
+                    <img id="crop-display-img" src="Pic/Logo.png" alt="Crop Image">
+                </div>
+                <div class="split-inputs" style="gap: 12px; justify-content: flex-start;">
+                    <div>
+                        <p style="font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 2px;">Registered Crop</p>
+                        <h2 id="registered-crop-display" style="font-size: 22px; color: var(--accent-green); font-weight: 700; margin-bottom: 8px; line-height: 1;">Rice</h2>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="margin-bottom: 0; gap: 4px; flex: 1;">
+                            <label style="font-size: 11px;">Soil Moisture (%)</label>
+                            <input type="number" id="soil_moisture" placeholder="45" required style="padding: 10px; font-size: 13px; text-align: center;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; gap: 4px; flex: 1;">
+                            <label style="font-size: 11px;">Soil pH</label>
+                            <input type="number" id="ph" step="0.1" placeholder="6.5" required style="padding: 10px; font-size: 13px; text-align: center;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 11px; color: var(--text-secondary); text-align: center; margin-top: 12px; margin-bottom: 12px;">Information is required to begin live analytics.</p>
+            <button type="submit" class="submit-btn" id="btn-cond">Submit</button>
+        </form>
+    </div>
+
+    <div class="separator-container" id="thankyou-separator" style="display: none; margin-bottom: 40px;">
+        <div class="separator-line"></div>
+        <div class="typing-text">🌿 <span id="thankyou-span"></span> 🌿</div>
+        <div class="separator-line"></div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+        ? 'http://localhost:5000'
+        : 'https://dharaveda.onrender.com';
+
+    let registeredCropId = null;
+    let isTyping = false;
+
+    async function streamText(text, elementId, speed = 30) {
+        if (isTyping) return;
+        isTyping = true;
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        for (let i = 0; i < text.length; i++) {
+            container.innerHTML += text.charAt(i);
+            await new Promise(r => setTimeout(r, speed));
+        }
+        isTyping = false;
+    }
+
+    function getWeatherDesc(code) {
+        if (code === 0) return { desc: 'clear sky', icon: 'fa-sun' };
+        if (code <= 3) return { desc: 'partly cloudy', icon: 'fa-cloud-sun' };
+        if (code < 50) return { desc: 'foggy or overcast', icon: 'fa-smog' };
+        if (code < 70) return { desc: 'rainy', icon: 'fa-cloud-rain' };
+        if (code < 80) return { desc: 'snowy', icon: 'fa-snowflake' };
+        if (code < 90) return { desc: 'rainy shower', icon: 'fa-cloud-showers-heavy' };
+        return { desc: 'stormy', icon: 'fa-cloud-bolt' };
+    }
+
+    function getTimeOfDay() {
+        const h = new Date().getHours();
+        if (h < 12) return 'morning';
+        if (h < 17) return 'afternoon';
+        if (h < 20) return 'evening';
+        return 'night';
+    }
+
+    window.onload = async () => {
+        const token = localStorage.getItem('dharaveda_token');
+        if (!token) {
+            alert('Please login first.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        let name = 'Farmer';
+        let district = 'your area';
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            name = payload.name || name;
+            district = payload.district || district;
+        } catch(e) {}
+        
+        let weatherStr = 'clear';
+        let tempStr = '--';
+        let iconClass = 'fa-sun';
+        const lat = localStorage.getItem('dharaveda_lat');
+        const lon = localStorage.getItem('dharaveda_lon');
+        
+        if (lat && lon) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode`);
+                const wdata = await res.json();
+                const wInfo = getWeatherDesc(wdata.current.weathercode);
+                weatherStr = wInfo.desc;
+                iconClass = wInfo.icon;
+                tempStr = Math.round(wdata.current.temperature_2m);
+            } catch(e) {}
+        }
+        
+        const timeOfDay = getTimeOfDay();
+        const CapitalizedTime = timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
+        
+        document.getElementById('weather-temp').innerText = `${tempStr}°C`;
+        document.getElementById('weather-loc').innerText = district;
+        document.getElementById('weather-icon').className = `fa-solid ${iconClass}`;
+        
+        const loader = document.getElementById('loading-overlay');
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 400);
+
+        await streamText(`Good ${timeOfDay}, ${name}! 🌿`, 'welcome-title', 35);
+        await streamText(`We are expecting a ${weatherStr} ${timeOfDay} in ${district}.`, 'welcome-subtitle', 25);
+        
+        const subtitle = document.getElementById('welcome-subtitle');
+        subtitle.innerHTML += `<br><span style="font-size:13px; margin-top:6px; display:inline-block; font-weight:600; color:var(--accent-green); animation:fadeIn 0.5s;">Please fill the registration form below to proceed.</span>`;
+
+        setTimeout(() => {
+            document.getElementById('form-crop').style.display = 'block';
+        }, 300);
+    };
+
+    document.getElementById('crop-reg-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-crop');
+        btn.disabled = true;
+        btn.innerHTML = '<img src="Pic/loading.gif" style="width:20px; height:20px; border-radius:50%;"> Registering...';
+
+        const crop = document.getElementById('crop').value;
+        const area = document.getElementById('area').value;
+        const sowingDate = document.getElementById('sowing_date').value;
+        
+        const token = localStorage.getItem('dharaveda_token');
+        let email_phone = '';
+        let district = '', state = '';
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            email_phone = payload.email_phone;
+            district = payload.district || '';
+            state = payload.state || '';
+        } catch(e) {}
+        
+        const lat = localStorage.getItem('dharaveda_lat') || 0;
+        const lon = localStorage.getItem('dharaveda_lon') || 0;
+
+        try {
+            const estimateResp = await fetch(`${API_BASE}/api/estimate_harvest`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ crop, area, sowing_date: sowingDate })
+            });
+            let expectedHarvest = '';
+            if (estimateResp.ok) {
+                const estData = await estimateResp.json();
+                if (estData.success) expectedHarvest = estData.expected_harvest;
+            }
+            if (!expectedHarvest) {
+                let d = new Date(sowingDate);
+                d.setDate(d.getDate() + 120);
+                expectedHarvest = d.toISOString().split('T')[0];
+            }
+
+            const submitResp = await fetch(`${API_BASE}/api/add_crop`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email_phone, crop, area, sowing_date: sowingDate, expected_harvest: expectedHarvest, latt: lat, long: lon, district, state })
+            });
+            const submitResult = await submitResp.json();
+
+            if (submitResp.ok && submitResult.success) {
+                btn.innerHTML = '<i class="fa-regular fa-circle-check"></i> Registered Successfully';
+                btn.style.background = '#1A3A27';
+                
+                if (submitResult.data && Array.isArray(submitResult.data) && submitResult.data.length > 0) {
+                    const row = submitResult.data[0];
+                    registeredCropId = row.id || row.ID || row.Id || row.crop_id;
+                }
+                
+                document.getElementById('registered-crop-display').innerText = crop;
+                document.getElementById('crop-display-img').src = `Pic/Crops/Crop_${crop}.jpg`;
+                document.getElementById('crop-display-img').onerror = function() { this.src = 'Pic/Logo.png'; };
+                
+                setTimeout(async () => {
+                    document.getElementById('separator-div').style.display = 'flex';
+                    await streamText("Please share your current farm and soil conditions for starting the analytics.", 'typing-text-span', 25);
+                    
+                    setTimeout(() => {
+                        document.getElementById('form-condition').style.display = 'block';
+                        document.querySelector('.app-container').scrollTo({
+                            top: document.querySelector('.app-container').scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }, 500);
+                }, 1000);
+            } else {
+                alert('Error: ' + submitResult.error);
+                btn.disabled = false;
+                btn.innerHTML = 'Register Crop';
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Error connecting to backend');
+            btn.disabled = false;
+            btn.innerHTML = 'Register Crop';
+        }
+    });
+
+    document.getElementById('condition-reg-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!registeredCropId) {
+            alert("No crop registered! The ID could not be found from the database response.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-cond');
+        btn.disabled = true;
+        btn.innerHTML = '<img src="Pic/loading.gif" style="width:20px; height:20px; border-radius:50%;"> Saving...';
+
+        const soil_moisture = document.getElementById('soil_moisture').value;
+        const ph = document.getElementById('ph').value;
+        const lat = localStorage.getItem('dharaveda_lat') || 0;
+        const lon = localStorage.getItem('dharaveda_lon') || 0;
+
+        const cropName = document.getElementById('registered-crop-display').innerText;
+
+        try {
+            const resp = await fetch(`${API_BASE}/api/add_crop_condition`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ crop_id: registeredCropId, crop_name: cropName, soil_moisture, ph, latt: lat, long: lon })
+            });
+            const resData = await resp.json();
+            
+            if (resp.ok && resData.success) {
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Done!';
+                btn.style.background = '#1A3A27';
+                
+                document.getElementById('thankyou-separator').style.display = 'flex';
+                await streamText("Thank you! Redirecting you to the dashboard...", 'thankyou-span', 25);
+                
+                setTimeout(() => {
+                    window.location.href = 'crop_tracker.html';
+                }, 2000);
+            } else {
+                alert('Error: ' + resData.error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Continue';
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Error connecting to backend');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Continue';
+        }
+    });
+</script>
+</body>
+</html>
