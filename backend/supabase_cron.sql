@@ -44,3 +44,22 @@ SELECT cron.schedule(
         );
     $$
 );
+
+-- -----------------------------------------------------------------------------
+-- AUTOMATED CROP ALERTS & CONDITION UPDATES
+-- Triggered every day at 6:00 PM IST (12:30 UTC)
+-- This will hit the background API endpoint to update the `crop_alerts` table
+-- and update `stress_level`, `health_score` in `crop_condition_snapshot` 
+-- and `health_score`, `growth_progress` in `crop_system`
+-- -----------------------------------------------------------------------------
+
+SELECT cron.schedule(
+    'process_daily_crop_alerts',
+    '30 12 * * *',
+    $$
+        SELECT net.http_post(
+            url := 'https://dharaveda.onrender.com/api/cron/process_daily_crop_alerts',
+            headers := '{"Content-Type": "application/json"}'::jsonb
+        );
+    $$
+);

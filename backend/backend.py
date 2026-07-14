@@ -846,11 +846,130 @@ def process_weather_cron():
     except Exception as e:
         print("Cron Weather Error:", e)
 
+def process_daily_crop_alerts_cron():
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    try:
+        resp = requests.get("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system?select=id,crop,current_stage", headers=headers)
+        if not resp.ok: return
+        crops = resp.json()
+        
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+        if not openrouter_key: return
+        
+        for crop in crops:
+            crop_id = crop.get("id")
+            crop_name = crop.get("crop")
+            
+            if not crop_id: continue
+            
+            # Fetch latest data
+            cond_resp = requests.get(f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_condition_snapshot?crop_id=eq.{crop_id}&order=date.desc&limit=1", headers=headers)
+            cond_data = cond_resp.json()[0] if cond_resp.ok and cond_resp.json() else {}
+            
+            timeline_resp = requests.get(f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_timeline?crop_id=eq.{crop_id}&order=date.desc&limit=1", headers=headers)
+            timeline_data = timeline_resp.json()[0] if timeline_resp.ok and timeline_resp.json() else {}
+            
+            weather_resp = requests.get(f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_weather?crop_id=eq.{crop_id}&order=date.desc&limit=1", headers=headers)
+            weather_data = weather_resp.json()[0] if weather_resp.ok and weather_resp.json() else {}
+            
+            # Try matching 'crop_name' or 'crop' in crop_requirement
+            req_resp = requests.get(f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_requirement?crop_name=ilike.{crop_name}", headers=headers)
+            if not req_resp.ok or not req_resp.json():
+                req_resp = requests.get(f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_requirement?crop=ilike.{crop_name}", headers=headers)
+            req_data = req_resp.json()[0] if req_resp.ok and req_resp.json() else {}
+            
+            prompt = f"""
+            Analyze the following crop data for {crop_name} and compare with its requirements to generate a daily alert and condition scores.
+            Current Condition: {cond_data}
+            Latest Event: {timeline_data}
+            Weather Forecast: {weather_data}
+            Crop Requirements: {req_data}
+            
+            Return a JSON object ONLY, with NO extra text or markdown formatting. Use the following exact keys and types:
+            "priority": string ("High" / "Medium" / "Low"),
+            "category": string ("Weather" / "Health" / "General"),
+            "title": string (Short title),
+            "description": string (Detailed observation),
+            "stress_level": integer (1-10),
+            "health_score": integer (1-10),
+            "growth_progress": integer (1-100)
+            """
+            
+            llm_resp = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json={
+                    "model": "google/gemma-3-27b-it:free",
+                    "messages": [{"role": "user", "content": prompt}]
+                },
+                headers={"Authorization": f"Bearer {openrouter_key}"},
+                timeout=20
+            )
+            
+            if llm_resp.ok:
+                try:
+                    res_content = llm_resp.json()["choices"][0]["message"]["content"].strip()
+                    import re
+                    match = re.search(r'```(?:json)?\s*(.*?)\s*```', res_content, re.DOTALL)
+                    if match:
+                        res_content = match.group(1).strip()
+                    parsed = json.loads(res_content)
+                    
+                    # 1. Insert into crop_alerts
+                    alert_payload = {
+                        "crop_id": crop_id,
+                        "crop": crop_name,
+                        "priority": parsed.get("priority", "Low"),
+                        "category": parsed.get("category", "General"),
+                        "title": parsed.get("title", "Daily Update"),
+                        "description": parsed.get("description", "Condition normal"),
+                        "status": "Open",
+                        "time": datetime.now(timezone.utc).isoformat()
+                    }
+                    requests.post("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_alerts", json=alert_payload, headers=headers)
+                    
+                    # 2. Update crop_condition_snapshot
+                    cond_id = cond_data.get("id")
+                    if cond_id:
+                        patch_headers = headers.copy()
+                        patch_headers["Prefer"] = "return=minimal"
+                        requests.patch(
+                            f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_condition_snapshot?id=eq.{cond_id}",
+                            json={"stress_level": parsed.get("stress_level", 5), "health_score": parsed.get("health_score", 8)},
+                            headers=patch_headers
+                        )
+                    
+                    # 3. Update crop_system
+                    sys_patch_headers = headers.copy()
+                    sys_patch_headers["Prefer"] = "return=minimal"
+                    requests.patch(
+                        f"https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system?id=eq.{crop_id}",
+                        json={"health_score": parsed.get("health_score", 8), "growth_progress": parsed.get("growth_progress", 10)},
+                        headers=sys_patch_headers
+                    )
+                except Exception as e:
+                    print("Alert AI Parsing error:", e, "Response:", res_content)
+            
+            time.sleep(2)
+            
+    except Exception as e:
+        print("Cron Alert Error:", e)
+
 @app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])
 def trigger_update_crop_weather():
     thread = threading.Thread(target=process_weather_cron)
     thread.start()
     return jsonify({"success": True, "message": "Weather update triggered in background"}), 202
+
+@app.route('/api/cron/process_daily_crop_alerts', methods=['GET', 'POST'])
+def trigger_daily_crop_alerts():
+    thread = threading.Thread(target=process_daily_crop_alerts_cron)
+    thread.start()
+    return jsonify({"success": True, "message": "Daily crop alerts processing triggered in background"}), 202
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
