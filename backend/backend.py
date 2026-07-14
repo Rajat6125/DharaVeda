@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta, timezone
+import threading
+import time
 import joblib
 import numpy as np
 import pandas as pd
@@ -326,6 +328,15 @@ def add_crop():
         if not farmer_id:
             return jsonify({"error": f"Could not find an 'id' column for user. Found columns: {list(user.keys())}"}), 400
             
+        # Calculate age
+        try:
+            s_date = datetime.strptime(sowing_date, "%Y-%m-%d").date()
+            today = datetime.now(timezone.utc).date()
+            age_days = (today - s_date).days
+            if age_days < 0: age_days = 0
+        except Exception:
+            age_days = 0
+
         # 2. Insert into crop_system
         crop_system_url = "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system"
         
@@ -336,7 +347,7 @@ def add_crop():
             "sowing_date": sowing_date,
             "expected_harvest": expected_harvest,
             "current_stage": "Sowed",
-            "age": 0,
+            "age": age_days,
             "health_score": 0,
             "growth_progress": 0,
             "latt": float(latt) if latt else 0.0,
@@ -610,6 +621,236 @@ def predict_fertilizer():
             "success": False,
             "error": str(e)
         }), 400
+
+@app.route('/api/add_crop_condition', methods=['POST'])
+def add_crop_condition():
+    try:
+        data = request.get_json()
+        crop_id = data.get("crop_id")
+        crop_name = data.get("crop_name", "Crop")
+        soil_moisture = float(data.get("soil_moisture", 0))
+        ph = float(data.get("ph", 0))
+        latt = float(data.get("latt", 0))
+        long = float(data.get("long", 0))
+
+        temp, hum, rain = 0.0, 0.0, 0.0
+        if latt != 0 and long != 0:
+            try:
+                weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latt}&longitude={long}&current=temperature_2m,relative_humidity_2m,precipitation"
+                w_resp = requests.get(weather_url, timeout=5)
+                if w_resp.status_code == 200:
+                    w_data = w_resp.json().get("current", {})
+                    temp = w_data.get("temperature_2m", 0.0)
+                    hum = w_data.get("relative_humidity_2m", 0.0)
+                    rain = w_data.get("precipitation", 0.0)
+            except Exception as e:
+                print("Weather API error:", e)
+
+        health_score = 10 if rain > 0 else 0
+        stress_level = 0 if rain > 0 else 5
+        now_str = datetime.now(timezone.utc).isoformat()
+
+        payload = {
+            "crop_id": crop_id,
+            "date": now_str,
+            "soil_moisture": soil_moisture,
+            "ph": ph,
+            "temperature": temp,
+            "humidity": hum,
+            "rainfall": rain,
+            "health_score": health_score,
+            "stress_level": stress_level
+        }
+
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+        
+        insert_resp = requests.post(
+            "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_condition_snapshot",
+            json=payload,
+            headers=headers
+        )
+
+        if insert_resp.status_code in [200, 201]:
+            # Generate AI description for timeline
+            ai_description = f"Crop of {crop_name} sown on {now_str[:10]}. Initial field conditions recorded: Soil Moisture {soil_moisture}%, pH {ph}, Temp {temp}°C, Humidity {hum}%, Rainfall {rain}mm."
+            try:
+                prompt = f"Write a short, professional 2 sentence timeline entry for a crop registration. Details: Crop: {crop_name}, Date: {now_str[:10]}, Moisture: {soil_moisture}%, pH: {ph}, Temp: {temp}C, Humidity: {hum}%, Rainfall: {rain}mm. Start exactly with: 'Crop of {crop_name} sown on {now_str[:10]}.'"
+                api_key = os.getenv("OPENROUTER_API_KEY", "")
+                if api_key:
+                    ai_resp = requests.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        json={
+                            "model": "meta-llama/llama-3.3-70b-instruct:free",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 150
+                        },
+                        headers={"Authorization": f"Bearer {api_key}"},
+                        timeout=5
+                    )
+                    if ai_resp.ok:
+                        ai_description = ai_resp.json()["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                print("Timeline AI Error:", e)
+
+            # Insert into crop_timeline
+            timeline_payload = {
+                "crop_id": crop_id,
+                "date": now_str,
+                "event_type": "Sowing",
+                "description": ai_description
+            }
+            requests.post(
+                "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_timeline",
+                json=timeline_payload,
+                headers=headers
+            )
+            
+            return jsonify({"success": True, "data": insert_resp.json()}), 201
+        else:
+            return jsonify({"error": f"Failed to add condition: {insert_resp.text}"}), insert_resp.status_code
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/add_timeline_event', methods=['POST'])
+def add_timeline_event():
+    try:
+        data = request.get_json()
+        crop_id = data.get("crop_id")
+        event_type = data.get("event_type", "Update")
+        description = data.get("description", "")
+        event_date = data.get("date")
+        
+        if not crop_id:
+            return jsonify({"success": False, "error": "crop_id is required"}), 400
+            
+        if not event_date:
+            event_date = datetime.now(timezone.utc).isoformat()
+            
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        }
+        
+        payload = {
+            "crop_id": crop_id,
+            "date": event_date,
+            "event_type": event_type,
+            "description": description
+        }
+        
+        resp = requests.post(
+            "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_timeline",
+            json=payload,
+            headers=headers
+        )
+        
+        if resp.status_code in [200, 201]:
+            return jsonify({"success": True, "data": resp.json()}), 201
+        else:
+            return jsonify({"success": False, "error": f"Failed to add timeline event: {resp.text}"}), resp.status_code
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+def process_weather_cron():
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    try:
+        resp = requests.get("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system?select=id,latt,long,crop", headers=headers)
+        if not resp.ok: return
+        crops = resp.json()
+        
+        openweather_key = os.getenv("OPENWEATHER_API_KEY", "")
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+        
+        for crop in crops:
+            crop_id = crop.get("id")
+            latt = crop.get("latt")
+            long = crop.get("long")
+            crop_name = crop.get("crop", "Unknown")
+            
+            if not latt or not long: continue
+            
+            temp, rain, humidity, wind = 0, 0, 0, 0
+            
+            try:
+                w_url = f"https://api.open-meteo.com/v1/forecast?latitude={latt}&longitude={long}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
+                w_resp = requests.get(w_url, timeout=5)
+                if w_resp.ok:
+                    curr = w_resp.json().get("current", {})
+                    temp = int(curr.get("temperature_2m", 0))
+                    humidity = int(curr.get("relative_humidity_2m", 0))
+                    rain = int(curr.get("precipitation", 0))
+                    wind = int(curr.get("wind_speed_10m", 0))
+            except: pass
+            
+            forecast_text = ""
+            if openweather_key:
+                try:
+                    fw_url = f"https://pro.openweathermap.org/data/2.5/forecast/hourly?lat={latt}&lon={long}&appid={openweather_key}&units=metric"
+                    fw_resp = requests.get(fw_url, timeout=5)
+                    if fw_resp.ok:
+                        fw_data = fw_resp.json()
+                        forecast_text = fw_data["list"][0]["weather"][0]["description"].capitalize()
+                except: pass
+            
+            if not forecast_text:
+                forecast_text = f"Temp {temp}C, Hum {humidity}%, Rain {rain}mm expected."
+
+            advice_text = "Monitor field conditions."
+            if openrouter_key:
+                try:
+                    prompt = f"Given weather for {crop_name}: Temp={temp}C, Rain={rain}mm, Humidity={humidity}%, Wind={wind}km/h, Forecast: {forecast_text}. Provide 1 concise sentence of farming advice."
+                    llm_resp = requests.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        json={
+                            "model": "meta-llama/llama-3.3-70b-instruct:free",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 100
+                        },
+                        headers={"Authorization": f"Bearer {openrouter_key}"},
+                        timeout=10
+                    )
+                    if llm_resp.ok:
+                        advice_text = llm_resp.json()["choices"][0]["message"]["content"].strip()
+                except: pass
+                
+            w_payload = {
+                "crop_id": crop_id,
+                "date": datetime.now(timezone.utc).isoformat(),
+                "temp": temp,
+                "rain": rain,
+                "humidity": humidity,
+                "wind": wind,
+                "forecast": forecast_text,
+                "advice": advice_text,
+                "latt": int(latt) if latt else 0,
+                "long": int(long) if long else 0
+            }
+            
+            requests.post("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_weather", json=w_payload, headers=headers)
+            time.sleep(1.5)
+            
+    except Exception as e:
+        print("Cron Weather Error:", e)
+
+@app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])
+def trigger_update_crop_weather():
+    thread = threading.Thread(target=process_weather_cron)
+    thread.start()
+    return jsonify({"success": True, "message": "Weather update triggered in background"}), 202
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

@@ -14,3 +14,33 @@ SELECT cron.schedule(
         WHERE current_stage != 'Harvested'; -- Optional: Don't increase age if harvested
     $$
 );
+
+
+-- -----------------------------------------------------------------------------
+-- AUTOMATED WEATHER UPDATES
+-- Triggered every day at 6:00 AM and 6:00 PM IST (00:30 and 12:30 UTC)
+-- This will hit the background API endpoint to update the `crop_weather` table
+-- Ensure that pg_net extension is enabled alongside pg_cron.
+-- -----------------------------------------------------------------------------
+
+SELECT cron.schedule(
+    'update_crop_weather_morning',
+    '30 0 * * *',
+    $$
+        SELECT net.http_post(
+            url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
+            headers := '{"Content-Type": "application/json"}'::jsonb
+        );
+    $$
+);
+
+SELECT cron.schedule(
+    'update_crop_weather_evening',
+    '30 12 * * *',
+    $$
+        SELECT net.http_post(
+            url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
+            headers := '{"Content-Type": "application/json"}'::jsonb
+        );
+    $$
+);
