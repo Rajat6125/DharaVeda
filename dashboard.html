@@ -1189,6 +1189,44 @@
                 if (!tlHtml) tlHtml = '<div style="color:var(--text-muted); font-size:12px;">No recent activities found.</div>';
                 document.getElementById('recent-activities-list').innerHTML = tlHtml;
 
+                // Fetch Weather Data
+                const weatherRes = await fetch(`${SUPABASE_URL}/crop_weather?select=*&crop_id=eq.${cropId}&order=date.desc&limit=1`, { headers });
+                const weatherDataList = await weatherRes.json();
+                if (weatherDataList && weatherDataList.length > 0) {
+                    const w = weatherDataList[0];
+                    const topWeatherEl = document.querySelector('.top-weather');
+                    if (topWeatherEl) {
+                        const dObj = new Date(w.date || new Date());
+                        const dateStr = dObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                        const dayName = days[dObj.getDay()];
+                        
+                        let iconClass = 'fa-sun';
+                        let iconColor = '#F6E05E';
+                        const forecastLower = (w.forecast || '').toLowerCase();
+                        if (forecastLower.includes('rain')) { iconClass = 'fa-cloud-rain'; iconColor = '#4299E1'; }
+                        else if (forecastLower.includes('cloud')) { iconClass = 'fa-cloud'; iconColor = '#A0AEC0'; }
+                        
+                        topWeatherEl.innerHTML = `
+                            <div style="text-align:right;">
+                                <div style="font-size:14px;font-weight:500;">${dateStr}, ${dayName}</div>
+                                <h2>${w.temp || 0}°C</h2>
+                                <p>${w.forecast || 'Clear'}</p>
+                            </div>
+                            <i class="fa-solid ${iconClass}" style="font-size:40px;color:${iconColor};"></i>
+                        `;
+                    }
+                    
+                    // Update Forecast Row with advice
+                    const forecastCard = document.querySelector('.grid-bottom .card:first-child');
+                    if (forecastCard && w.advice) {
+                        const adviceEl = forecastCard.querySelector('div[style*="background:#EBF8FF"]');
+                        if (adviceEl) {
+                            adviceEl.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#3182CE;"></i> ${w.advice}`;
+                        }
+                    }
+                }
+
                 const alRes = await fetch(`${SUPABASE_URL}/crop_alerts?select=*&crop_id=eq.${cropId}&order=time.desc&limit=3`, { headers });
                 const alerts = await alRes.json();
 

@@ -937,7 +937,21 @@ def process_daily_crop_alerts_cron():
                     match = re.search(r'```(?:json)?\s*(.*?)\s*```', res_content, re.DOTALL)
                     if match:
                         res_content = match.group(1).strip()
-                    parsed = json.loads(res_content)
+                    
+                    parsed = {}
+                    try:
+                        parsed = json.loads(res_content)
+                    except Exception as parse_e:
+                        print("JSON Parse error, falling back to defaults:", parse_e)
+                        parsed = {
+                            "priority": "Medium",
+                            "category": "General",
+                            "title": "Daily Status Update",
+                            "description": "System generated daily check. Unable to parse AI response.",
+                            "stress_level": 5,
+                            "health_score": 8,
+                            "growth_progress": 50
+                        }
                     
                     # 1. Insert into crop_alerts
                     alert_payload = {

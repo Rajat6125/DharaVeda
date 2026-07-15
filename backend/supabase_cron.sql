@@ -29,7 +29,8 @@ SELECT cron.schedule(
     $$
         SELECT net.http_post(
             url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
-            headers := '{"Content-Type": "application/json"}'::jsonb
+            headers := '{"Content-Type": "application/json"}'::jsonb,
+            timeout_milliseconds := 5000
         );
     $$
 );
@@ -40,7 +41,8 @@ SELECT cron.schedule(
     $$
         SELECT net.http_post(
             url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
-            headers := '{"Content-Type": "application/json"}'::jsonb
+            headers := '{"Content-Type": "application/json"}'::jsonb,
+            timeout_milliseconds := 5000
         );
     $$
 );
@@ -59,7 +61,8 @@ SELECT cron.schedule(
     $$
         SELECT net.http_post(
             url := 'https://dharaveda.onrender.com/api/cron/process_daily_crop_alerts',
-            headers := '{"Content-Type": "application/json"}'::jsonb
+            headers := '{"Content-Type": "application/json"}'::jsonb,
+            timeout_milliseconds := 5000
         );
     $$
 );
