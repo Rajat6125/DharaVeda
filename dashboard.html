@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DharaVeda - Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3B6B3F;
+            --primary-light: #4A8C4F;
+            --bg-color: #F8F4EB;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --danger: #E53E3E;
+            --warning: #DD6B20;
+            --success: #38A169;
+            --info: #3182CE;
+        }
+
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            color: var(--text-main); 
+        }
+
+        .dashboard-layout { 
+            display: flex; 
+            min-height: 100vh; 
+            position: relative; 
+        }
+
+        .bg-layer { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 50vh; 
+            background: url('Pic/Wall1.jpg') bottom/cover no-repeat; 
+            z-index: -1; 
+            opacity: 0.2; 
+        }
+
+        /* Sidebar */
+        .sidebar { 
+            width: 260px; 
+            background: #FAF7F0; 
+            border-right: 1px solid #E2E8F0; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 20px; 
+            z-index: 10; 
+        }
+        .logo-area { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            font-weight: 700; 
+            font-size: 20px; 
+            color: var(--primary); 
+            margin-bottom: 40px; 
+        }
+        .logo-area img { width: 32px; }
+        .menu { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+        }
+        .menu-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            color: var(--text-muted); 
+            text-decoration: none; 
+            font-weight: 500; 
+            transition: 0.2s; 
+        }
+        .menu-item:hover, .menu-item.active { 
+            background: var(--primary); 
+            color: white; 
+        }
+        .sidebar-profile { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        .sidebar-profile img { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            object-fit: cover;
+        }
+
+        /* Main Content */
+        .main-content { 
+            flex: 1; 
+            padding: 30px 40px; 
+            overflow-y: auto; 
+            backdrop-filter: blur(5px); 
+        }
+
+        /* Top Header */
+        .top-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
+        }
+        .crop-header { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px; 
+        }
+        .crop-img { 
+            width: 80px; 
+            height: 80px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 3px solid white; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        }
+        .crop-info h1 { 
+            margin: 0; 
+            font-size: 28px; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .crop-info h1 span { 
+            font-size: 16px; 
+            color: var(--text-muted); 
+            font-weight: 400; 
+        }
+        .crop-meta { 
+            display: flex; 
+            gap: 20px; 
+            color: var(--text-muted); 
+            font-size: 14px; 
+            margin-top: 5px; 
+        }
+        .top-weather { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            text-align: right; 
+        }
+        .top-weather h2 { 
+            margin: 0; 
+            font-size: 24px; 
+        }
+        .top-weather p { 
+            margin: 0; 
+            color: var(--text-muted); 
+        }
+
+        /* Cards Layout */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            padding: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            border: 1px solid rgba(255,255,255,0.5); 
+            backdrop-filter: blur(10px); 
+        }
+        .card-title { 
+            font-size: 16px; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        /* Grid Systems */
+        .grid-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; margin-bottom: 20px; }
+        .grid-status { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; margin-bottom: 20px; }
+        .grid-middle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-charts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+
+        .chart-container { position: relative; height: 180px; width: 100%; }
+
+        /* Stat Card */
+        .stat-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 15px; }
+        .stat-card .icon { color: var(--text-muted); font-size: 20px; }
+        .stat-card .label { font-size: 13px; color: var(--text-muted); }
+        .stat-card .value { font-size: 20px; font-weight: 600; }
+        .stat-card .sub-value { font-size: 12px; font-weight: 500; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-info { color: var(--info); }
+        .text-warning { color: var(--warning); }
+
+        /* List items */
+        .ai-list, .todo-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+        .ai-list li, .todo-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; }
+        .ai-list li i { font-size: 16px; margin-top: 2px; }
+        .todo-list li i { background: #E8F5E9; color: var(--primary); width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        /* Circular Progress */
+        .circle-progress { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+
+        /* Weather Forecast */
+        .forecast-row { display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
+        .forecast-day { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+
+        /* Alerts */
+        .alert-item { display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: white; margin-bottom: 10px; }
+        .alert-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .alert-badge.high { background: #FEE2E2; color: var(--danger); }
+        .alert-badge.medium { background: #FEF3C7; color: var(--warning); }
+        .alert-badge.info { background: #E0E7FF; color: var(--info); }
+        .alert-content h4 { margin: 0 0 4px; font-size: 14px; }
+        .alert-content p { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+        /* Bottom Nav */
+        .bottom-nav { display: none; }
+        .mobile-header { display: none; }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .bottom-nav { 
+                display: flex; position: fixed; bottom: 0; width: 100%; background: white; 
+                justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 50; 
+                border-top-left-radius: 20px; border-top-right-radius: 20px;
+            }
+            .bottom-nav .nav-item { 
+                display: flex; flex-direction: column; align-items: center; font-size: 11px; 
+                color: var(--text-muted); text-decoration: none; gap: 5px; font-weight: 500;
+            }
+            .bottom-nav .nav-item.active { color: var(--primary); }
+            .bottom-nav .nav-item i { font-size: 20px; margin-bottom: 2px; }
+            .bottom-nav .fab { 
+                background: var(--primary); color: white; width: 56px; height: 56px; 
+                border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                font-size: 24px; margin-top: -35px; box-shadow: 0 5px 15px rgba(59, 107, 63, 0.4);
+            }
+            
+            .dashboard-layout { display: block; padding-bottom: 80px; }
+            .main-content { padding: 15px; }
+            .top-header { display: none; }
+            
+            .mobile-header {
+                display: flex; justify-content: space-between; align-items: center; padding: 10px 5px 20px;
+            }
+            .mobile-user { display: flex; align-items: center; gap: 15px; }
+            .mobile-user img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; }
+            .mobile-user h1 { font-size: 19px; margin: 0; font-weight: 600; }
+            .mobile-user p { font-size: 12px; color: var(--text-muted); margin: 0; }
+            
+            .grid-stats { grid-template-columns: repeat(3, 1fr); }
+            .grid-stats .stat-card:nth-child(1) { grid-column: span 1; border-left: none; }
+            .grid-stats .stat-card:nth-child(4) { border-left: none; }
+            .grid-stats .stat-card { border-left: none; }
+            
+            .grid-status { grid-template-columns: repeat(3, 1fr); }
+            .grid-middle, .grid-bottom, .grid-charts { grid-template-columns: 1fr; }
+            .bg-layer { top: 0; height: 350px; background-position: center top; opacity: 0.15; }
+        }
+
+        @media (max-width: 600px) {
+            .grid-status { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-layout">
+    <div class="bg-layer"></div>
+    
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <i class="fa-solid fa-leaf"></i> 
+            <div>DharaVeda<br><span style="font-size:12px;color:#555;font-weight:500;">Crop Tracker</span></div>
+        </div>
+        <nav class="menu">
+            <a href="dashboard.html" class="menu-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="crop_tracker.html" class="menu-item"><i class="fa-solid fa-seedling"></i> Crop Tracker</a>
+            <a href="error.html" class="menu-item"><i class="fa-solid fa-timeline"></i> Timeline</a>
+            <a href="error.html" class="menu-item"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
+            <a href="error.html" class="menu-item"><i class="fa-regular fa-bell"></i> Alerts</a>
+            <a href="error.html" class="menu-item"><i class="fa-regular fa-lightbulb"></i> Recommendations</a>
+            <a href="error.html" class="menu-item"><i class="fa-solid fa-chart-column"></i> Reports</a>
+            <a href="error.html" class="menu-item" style="margin-top: auto;"><i class="fa-solid fa-gear"></i> Settings</a>
+        </nav>
+        <div class="sidebar-profile">
+            <img src="Pic/lady_bot.png" alt="Profile" onerror="this.src='Pic/0Logo.png'">
+            <div>
+                <div style="font-weight:600;font-size:14px;" id="sidebar-name">User Name</div>
+                <div style="font-size:11px;color:var(--text-muted);" id="sidebar-loc">Location</div>
+            </div>
+            <i class="fa-solid fa-chevron-down" style="margin-left:auto;color:#999;font-size:12px;"></i>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <div class="mobile-user">
+                <img src="Pic/lady_bot.png" alt="Profile" onerror="this.src='Pic/0Logo.png'">
+                <div>
+                    <h1>Good Morning, <span style="color:var(--primary)" id="mobile-name">User</span></h1>
+                    <p id="mobile-email">email@example.com</p>
+                    <p><i class="fa-solid fa-location-dot"></i> <span id="mobile-loc">Location</span></p>
+                </div>
+            </div>
+            <div style="background:white;padding:12px;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,0.08);width:40px;height:40px;display:flex;align-items:center;justify-content:center;position:relative;">
+                <i class="fa-regular fa-bell"></i>
+                <div style="position:absolute;top:10px;right:10px;width:8px;height:8px;background:var(--danger);border-radius:50%;"></div>
+            </div>
+        </div>
+
+        <!-- Desktop Header -->
+        <header class="top-header">
+            <div class="crop-header">
+                <img src="Pic/0Logo.png" alt="Wheat" class="crop-img">
+                <div class="crop-info">
+                    <h1>Wheat <span>HD-2967</span></h1>
+                    <div class="crop-meta">
+                        <span><i class="fa-solid fa-location-dot"></i> <span id="desktop-loc">Kangra, Himachal Pradesh</span></span>
+                        <span><i class="fa-solid fa-chart-area"></i> 2.5 Acres</span>
+                    </div>
+                </div>
+            </div>
+            <div class="top-weather">
+                <div style="text-align:right;">
+                    <div style="font-size:14px;font-weight:500;">12 Dec 2024, Thursday</div>
+                    <h2>27°C</h2>
+                    <p>Sunny</p>
+                </div>
+                <i class="fa-solid fa-sun" style="font-size:40px;color:#F6E05E;"></i>
+            </div>
+        </header>
+
+        <!-- Stats Row -->
+        <div class="card grid-stats" style="padding: 10px;">
+            <div class="stat-card">
+                <div class="label">Current Stage</div>
+                <div class="value" style="color:var(--primary);display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-leaf"></i> Tillering</div>
+            </div>
+            <div class="stat-card" style="border-left:1px solid #eee;">
+                <div class="label">Age</div>
+                <div class="value"><i class="fa-regular fa-calendar" style="font-size:16px;color:#888;"></i> 62 Days</div>
+            </div>
+            <div class="stat-card" style="border-left:1px solid #eee;">
+                <div class="label">Health Score</div>
+                <div class="value text-success"><i class="fa-solid fa-heart-pulse"></i> 92<span style="font-size:14px;color:#999;">/100</span></div>
+                <div class="sub-value text-success">Excellent</div>
+            </div>
+            <div class="stat-card" style="border-left:1px solid #eee;">
+                <div class="label">Growth Progress</div>
+                <div class="value"><i class="fa-solid fa-chart-pie" style="color:#888;"></i> 43%</div>
+                <div style="width:100%;height:4px;background:#eee;border-radius:2px;margin-top:5px;"><div style="width:43%;height:100%;background:var(--success);border-radius:2px;"></div></div>
+            </div>
+            <div class="stat-card" style="border-left:1px solid #eee;">
+                <div class="label">Expected Harvest</div>
+                <div class="value"><i class="fa-regular fa-calendar-check" style="color:#888;"></i> 18 Mar 2025</div>
+            </div>
+            <div class="stat-card" style="border-left:1px solid #eee;">
+                <div class="label">Stress Score</div>
+                <div class="value"><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Low</div>
+            </div>
+        </div>
+
+        <!-- Status Row -->
+        <div class="grid-status">
+            <div class="card stat-card">
+                <i class="fa-solid fa-droplet icon" style="color:#3182CE;"></i>
+                <div class="label">Soil Moisture</div>
+                <div class="value">45%</div>
+                <div class="sub-value text-success">Optimal</div>
+            </div>
+            <div class="card stat-card">
+                <i class="fa-solid fa-temperature-half icon" style="color:#DD6B20;"></i>
+                <div class="label">Temperature</div>
+                <div class="value">28°C</div>
+                <div class="sub-value text-success">Ideal</div>
+            </div>
+            <div class="card stat-card">
+                <i class="fa-solid fa-cloud-rain icon" style="color:#3182CE;"></i>
+                <div class="label">Humidity</div>
+                <div class="value">72%</div>
+                <div class="sub-value text-success">Normal</div>
+            </div>
+            <div class="card stat-card">
+                <i class="fa-solid fa-cloud-showers-heavy icon" style="color:#4299E1;"></i>
+                <div class="label">Rainfall</div>
+                <div class="value">12 mm</div>
+                <div class="sub-value text-info">Today</div>
+            </div>
+            <div class="card stat-card">
+                <i class="fa-solid fa-triangle-exclamation icon" style="color:#D69E2E;"></i>
+                <div class="label">Stress Level</div>
+                <div class="value">Low</div>
+                <div class="sub-value text-success">Good</div>
+            </div>
+            <div class="card stat-card">
+                <i class="fa-solid fa-heart-circle-check icon" style="color:#38A169;"></i>
+                <div class="label">Health Score</div>
+                <div class="value">92/100</div>
+                <div class="sub-value text-success">Excellent</div>
+            </div>
+        </div>
+
+        <!-- Middle Row -->
+        <div class="grid-middle">
+            <div class="card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span><i class="fa-solid fa-leaf" style="color:var(--primary);"></i> AI Crop Summary</span>
+                </div>
+                <ul class="ai-list" id="ai-summary-list">
+                    <li style="color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Generating summary...</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-clipboard-list" style="color:var(--primary);"></i> What Should You Do Today?</div>
+                <ul class="todo-list" id="todo-list">
+                    <li style="color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Generating recommendations...</li>
+                </ul>
+            </div>
+            <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div class="card-title" style="width:100%;">Growth Progress</div>
+                <div class="circle-progress">
+                    <canvas id="progressChart"></canvas>
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+                        <div style="font-size:28px;font-weight:700;">43%</div>
+                        <div style="font-size:12px;color:var(--text-muted);">Completed</div>
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;width:100%;margin-top:20px;font-size:10px;text-align:center;color:var(--text-muted);">
+                    <div><i class="fa-solid fa-seedling" style="font-size:14px;"></i><br>Seed</div>
+                    <div><i class="fa-brands fa-pagelines" style="font-size:14px;"></i><br>Germination</div>
+                    <div style="color:var(--primary);font-weight:600;"><i class="fa-solid fa-leaf" style="font-size:14px;"></i><br>Tillering</div>
+                    <div><i class="fa-solid fa-spa" style="font-size:14px;"></i><br>Flowering</div>
+                    <div><i class="fa-solid fa-wheat-awn" style="font-size:14px;"></i><br>Harvest</div>
+                </div>
+                <div style="margin-top:15px;font-size:12px;color:var(--text-muted);">Expected Harvest: <span style="color:var(--success);font-weight:600;">18 March 2025</span></div>
+            </div>
+        </div>
+
+        <!-- Charts Section (Crop Insights) -->
+        <h3 style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+            Crop Insights 
+            <span style="font-size:12px;font-weight:400;color:var(--text-muted);border:1px solid #ddd;padding:4px 8px;border-radius:4px;cursor:pointer;background:white;">Last 15 Days <i class="fa-solid fa-chevron-down"></i></span>
+        </h3>
+        <div class="grid-charts">
+            <div class="card"><div class="card-title">Health Score Trend</div><div class="chart-container"><canvas id="healthChart"></canvas></div></div>
+            <div class="card"><div class="card-title">Soil Moisture Trend (%)</div><div class="chart-container"><canvas id="moistureChart"></canvas></div></div>
+            <div class="card"><div class="card-title">Temperature & Humidity</div><div class="chart-container"><canvas id="tempHumChart"></canvas></div></div>
+            <div class="card"><div class="card-title">Rainfall (mm)</div><div class="chart-container"><canvas id="rainChart"></canvas></div></div>
+            <div class="card"><div class="card-title">Stress Level</div><div class="chart-container"><canvas id="stressChart"></canvas></div></div>
+            <div class="card"><div class="card-title">Event Distribution</div><div class="chart-container"><canvas id="eventChart"></canvas></div></div>
+        </div>
+        
+        <!-- Bottom Row -->
+        <div class="grid-bottom">
+            <div class="card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span><i class="fa-solid fa-cloud" style="color:#4299E1;"></i> Weather Forecast</span>
+                    <a href="#" style="font-size:12px;color:var(--text-muted);text-decoration:none;">View All</a>
+                </div>
+                <div class="forecast-row">
+                    <div class="forecast-day"><div>Today</div><i class="fa-solid fa-sun" style="color:#F6E05E;font-size:20px;"></i><div>27°/15°</div><div style="color:#4299E1;"><i class="fa-solid fa-droplet"></i> 0%</div><div>Sunny</div></div>
+                    <div class="forecast-day"><div>Tomorrow</div><i class="fa-solid fa-cloud-rain" style="color:#4299E1;font-size:20px;"></i><div>24°/14°</div><div style="color:#4299E1;"><i class="fa-solid fa-droplet"></i> 70%</div><div>Rain</div></div>
+                    <div class="forecast-day"><div>Sat</div><i class="fa-solid fa-cloud" style="color:#A0AEC0;font-size:20px;"></i><div>22°/13°</div><div style="color:#4299E1;"><i class="fa-solid fa-droplet"></i> 40%</div><div>Cloudy</div></div>
+                    <div class="forecast-day"><div>Sun</div><i class="fa-solid fa-cloud-sun" style="color:#D69E2E;font-size:20px;"></i><div>25°/14°</div><div style="color:#4299E1;"><i class="fa-solid fa-droplet"></i> 10%</div><div>Partly</div></div>
+                    <div class="forecast-day"><div>Mon</div><i class="fa-solid fa-sun" style="color:#F6E05E;font-size:20px;"></i><div>26°/15°</div><div style="color:#4299E1;"><i class="fa-solid fa-droplet"></i> 0%</div><div>Sunny</div></div>
+                </div>
+                <div style="margin-top:20px;padding:12px;background:#EBF8FF;border-radius:8px;font-size:13px;display:flex;gap:10px;align-items:center;">
+                    <i class="fa-solid fa-circle-info" style="color:#3182CE;"></i> Rain expected tomorrow. Skip irrigation today.
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span>Recent Activities</span>
+                </div>
+                <div style="position:relative;padding-left:15px;border-left:2px solid #E2E8F0;" id="recent-activities-list">
+                    <div style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading activities...</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title" style="justify-content:space-between;">
+                    <span>Active Alerts</span>
+                </div>
+                <div id="active-alerts-list">
+                    <div style="color:var(--text-muted); font-size:12px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading alerts...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="crop_tracker.html" class="nav-item"><i class="fa-solid fa-leaf"></i> Tracker</a>
+        <a href="#" class="nav-item fab"><i class="fa-solid fa-plus"></i></a>
+        <a href="error.html" class="nav-item"><i class="fa-regular fa-bell"></i> Alerts</a>
+        <a href="error.html" class="nav-item"><i class="fa-solid fa-chart-column"></i> Reports</a>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://hjzqywjtssveipriurgn.supabase.co/rest/v1";
+    const SUPABASE_KEY = "sb_publishable_e8s8-nmm0EDSCy8_j9UVaQ_WOfa6SlX"; 
+
+    function showNoCrop(mainEl) {
+        mainEl.innerHTML = `
+            <div style="text-align:center; padding: 80px 20px; background: rgba(255,255,255,0.8); border-radius: 20px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <i class="fa-solid fa-seedling" style="font-size: 56px; color: #a0aec0; margin-bottom: 20px;"></i>
+                <h2 style="margin-bottom: 10px;">No Crop Found</h2>
+                <p style="color: var(--text-muted); margin-bottom: 30px;">Please register a crop to view your dashboard analytics.</p>
+                <a href="crop_register.html" style="background: var(--primary); color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-weight: 500; display: inline-block;">Register Crop</a>
+            </div>
+        `;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const mainEl = document.querySelector('.main-content');
+        
+        // Fetch user data
+        const userDataStr = localStorage.getItem('dharaveda_user');
+        const token = localStorage.getItem('dharaveda_token');
+        let displayEmail = '';
+        
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload && payload.email_phone) {
+                    displayEmail = payload.email_phone;
+                }
+            } catch (e) { console.error("Error decoding token"); }
+        }
+
+        if (userDataStr) {
+            try {
+                const userData = JSON.parse(userDataStr);
+                const firstName = userData.name ? userData.name.split(' ')[0] : 'User';
+                
+                if(document.getElementById('mobile-name')) document.getElementById('mobile-name').textContent = firstName;
+                if(document.getElementById('sidebar-name')) document.getElementById('sidebar-name').textContent = userData.name || 'User Name';
+                
+                if (!displayEmail && userData.email_phone) displayEmail = userData.email_phone;
+                
+                if(document.getElementById('mobile-email')) document.getElementById('mobile-email').textContent = displayEmail || 'email@example.com';
+                
+                let locationString = userData.district || 'New Delhi';
+                if (userData.state) locationString += `, ${userData.state}`;
+                
+                if(document.getElementById('mobile-loc')) document.getElementById('mobile-loc').textContent = locationString + ', India';
+                if(document.getElementById('sidebar-loc')) document.getElementById('sidebar-loc').textContent = locationString;
+                if(document.getElementById('desktop-loc')) document.getElementById('desktop-loc').textContent = locationString + ', India';
+                
+            } catch (e) { console.error(e); }
+        }
+
+        if(!displayEmail) {
+            showNoCrop(mainEl);
+            return;
+        }
+
+        const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+        
+        try {
+            // 1. Get Farmer ID
+            const userRes = await fetch(`${SUPABASE_URL}/User_database?select=*&Email_Phone=eq.${encodeURIComponent(displayEmail)}`, { headers });
+            const users = await userRes.json();
+            
+            if(!users || users.length === 0) {
+                showNoCrop(mainEl); return;
+            }
+            
+            const user = users[0];
+            const farmer_id = user.id || user.ID || user.Id || user.farmer_id || user.Farmer_id;
+
+            // 2. Get Latest Crop
+            const cropRes = await fetch(`${SUPABASE_URL}/crop_system?select=*&farmer_id=eq.${farmer_id}&order=sowing_date.desc&limit=1`, { headers });
+            const crops = await cropRes.json();
+            
+            if(!crops || crops.length === 0) {
+                showNoCrop(mainEl); return;
+            }
+            
+            const crop = crops[0];
+            const cropId = crop.crop_id;
+            
+            // Compute Growth Progress dynamically
+            let progress = crop.growth_progress || 0;
+            if (crop.sowing_date && crop.expected_harvest) {
+                const start = new Date(crop.sowing_date);
+                const end = new Date(crop.expected_harvest);
+                const now = new Date();
+                const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+                const passed = (now - start) / (1000 * 60 * 60 * 24);
+                if (totalDays > 0) {
+                    progress = Math.min(100, Math.max(0, Math.round((passed / totalDays) * 100)));
+                }
+            } else if (crop.age) {
+                progress = Math.min(100, Math.round((crop.age / 120) * 100)); // fallback to 120 days lifespan
+            }
+            const actualHealth = (crop.health_score <= 10) ? Math.round(crop.health_score * 10) : crop.health_score;
+
+            // Populate basic header data
+            const cropTitleEl = document.querySelector('.crop-info h1');
+            if(cropTitleEl) cropTitleEl.innerHTML = `${crop.crop} <span>${crop.Area} Acres</span>`;
+            
+            const statsCards = document.querySelectorAll('.grid-stats .stat-card');
+            if(statsCards.length >= 5) {
+                statsCards[0].querySelector('.value').innerHTML = `<i class="fa-solid fa-leaf"></i> ${crop.current_stage || 'Sowed'}`;
+                statsCards[1].querySelector('.value').innerHTML = `<i class="fa-regular fa-calendar" style="font-size:16px;color:#888;"></i> ${crop.age || 0} Days`;
+                statsCards[2].querySelector('.value').innerHTML = `<i class="fa-solid fa-heart-pulse"></i> ${actualHealth || 0}<span style="font-size:14px;color:#999;">/100</span>`;
+                statsCards[3].querySelector('.value').innerHTML = `<i class="fa-solid fa-chart-pie" style="color:#888;"></i> ${progress}%`;
+                
+                // Update horizontal progress bar
+                const progBar = statsCards[3].querySelector('div[style*="width:100%"] > div');
+                if (progBar) progBar.style.width = `${progress}%`;
+                
+                let harvestStr = crop.expected_harvest;
+                if(harvestStr) {
+                    const d = new Date(harvestStr);
+                    harvestStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                } else { harvestStr = 'TBD'; }
+                statsCards[4].querySelector('.value').innerHTML = `<i class="fa-regular fa-calendar-check" style="color:#888;"></i> ${harvestStr}`;
+            }
+
+            // 3. Get Snapshots
+            const snapRes = await fetch(`${SUPABASE_URL}/crop_condition_snapshot?select=*&crop_id=eq.${cropId}&order=date.desc&limit=5`, { headers });
+            let snaps = await snapRes.json();
+            
+            // If empty, put dummy so charts don't crash
+            if(snaps.length === 0) {
+                snaps = [{ date: new Date().toISOString(), soil_moisture: 0, temperature: 0, humidity: 0, rainfall: 0, health_score: 0, stress_level: 0 }];
+            }
+            
+            // Update Quick Status and Stress Card
+            const latest = snaps[0];
+            const statusValues = document.querySelectorAll('.grid-status .value');
+            if(statusValues.length >= 6) {
+                statusValues[0].textContent = `${latest.soil_moisture || 0}%`;
+                statusValues[1].textContent = `${latest.temperature || 0}°C`;
+                statusValues[2].textContent = `${latest.humidity || 0}%`;
+                statusValues[3].textContent = `${latest.rainfall || 0} mm`;
+                statusValues[4].textContent = (latest.stress_level > 5) ? 'High' : 'Low';
+                statusValues[5].textContent = `${(latest.health_score <= 10 ? latest.health_score * 10 : latest.health_score) || 0}/100`;
+            }
+            if(statsCards.length >= 6) {
+                statsCards[5].innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> ${latest.stress_level || 0}/10`;
+            }
+
+            snaps.reverse(); // oldest first for charts
+            
+            const labels = snaps.map(s => {
+                const d = new Date(s.date);
+                return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            });
+            const healthData = snaps.map(s => (s.health_score <= 10 ? s.health_score * 10 : s.health_score) || 0);
+            const moistureData = snaps.map(s => s.soil_moisture || 0);
+            const tempData = snaps.map(s => s.temperature || 0);
+            const humData = snaps.map(s => s.humidity || 0);
+            const rainData = snaps.map(s => s.rainfall || 0);
+            const stressData = snaps.map(s => (s.stress_level <= 10 ? s.stress_level * 10 : s.stress_level) || 0);
+
+            // Fetch Timeline and Alerts
+            const tlRes = await fetch(`${SUPABASE_URL}/crop_timeline?select=*&crop_id=eq.${cropId}&order=date.desc&limit=5`, { headers });
+            const timeline = await tlRes.json();
+            
+            let tlHtml = '';
+            let eventCounts = { 'Irrigation': 0, 'Fertilizer': 0, 'Pesticide': 0, 'Inspection': 0, 'Others': 0 };
+            
+            if (timeline && timeline.length > 0) {
+                timeline.forEach(t => {
+                    const d = new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+                    tlHtml += `<div style="position:relative;margin-bottom:15px;">
+                        <div style="position:absolute;left:-22px;top:2px;width:12px;height:12px;border-radius:50%;background:var(--success);border:2px solid white;"></div>
+                        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;"><span style="font-weight:600;">${d}</span> <span style="font-weight:600;">${t.event_type}</span></div>
+                        <div style="font-size:11px;color:var(--text-muted);">${t.description || ''}</div>
+                    </div>`;
+                    
+                    let eType = t.event_type || 'Others';
+                    if(eventCounts[eType] !== undefined) eventCounts[eType]++;
+                    else eventCounts['Others']++;
+                });
+            }
+            if(!tlHtml) tlHtml = '<div style="color:var(--text-muted); font-size:12px;">No recent activities found.</div>';
+            document.getElementById('recent-activities-list').innerHTML = tlHtml;
+
+            const alRes = await fetch(`${SUPABASE_URL}/crop_alerts?select=*&crop_id=eq.${cropId}&order=time.desc&limit=3`, { headers });
+            const alerts = await alRes.json();
+            
+            let alHtml = '';
+            if (alerts && alerts.length > 0) {
+                alerts.forEach(a => {
+                    const d = new Date(a.time).toLocaleString('en-GB', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+                    const badgeCls = a.priority ? (a.priority.toLowerCase() === 'high' ? 'high' : (a.priority.toLowerCase() === 'medium' ? 'medium' : 'info')) : 'info';
+                    alHtml += `<div class="alert-item">
+                        <div class="alert-badge ${badgeCls}">${a.priority || 'Info'}</div>
+                        <div class="alert-content">
+                            <h4>${a.title || 'Alert'}</h4>
+                            <p>${a.description || ''}<br>${d}</p>
+                        </div>
+                    </div>`;
+                });
+            }
+            if(!alHtml) alHtml = '<div style="color:var(--text-muted); font-size:12px;">No active alerts.</div>';
+            document.getElementById('active-alerts-list').innerHTML = alHtml;
+
+            // Background Async Fetch for AI
+            (async () => {
+                const OPENROUTER_KEY = "YOUR_OPENROUTER_API_KEY"; // REPLACE WITH YOUR ACTUAL API KEY
+                try {
+                    const p1 = `You are a crop advisor. Crop details: Name: ${crop.crop}, Age: ${crop.age} days, Stage: ${crop.current_stage}, Health: ${actualHealth}/100. Return EXACTLY 5 HTML <li> elements containing a short summary point about the crop. DO NOT include markdown, DO NOT include <ul> tags, ONLY return <li> elements.`;
+                    const res1 = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${OPENROUTER_KEY}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            model: "google/gemma-3-27b-it:free",
+                            messages: [{ role: "user", content: p1 }]
+                        })
+                    });
+                    if(res1.ok) {
+                        const data = await res1.json();
+                        let r = data.choices[0].message.content.replace(/```html/g, '').replace(/```/g, '').trim();
+                        document.getElementById('ai-summary-list').innerHTML = r;
+                    } else { throw new Error("Failed"); }
+                } catch(e) { document.getElementById('ai-summary-list').innerHTML = '<li style="color:var(--text-muted);">Could not load summary.</li>'; }
+                
+                try {
+                    const p2 = `You are a crop advisor. Crop details: Name: ${crop.crop}, Age: ${crop.age} days, Stage: ${crop.current_stage}. Return EXACTLY 5 HTML <li> elements containing concise, highly actionable tasks the farmer should do today. DO NOT include markdown, DO NOT include <ul> tags, ONLY return <li> elements.`;
+                    const res2 = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${OPENROUTER_KEY}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            model: "google/gemma-3-27b-it:free",
+                            messages: [{ role: "user", content: p2 }]
+                        })
+                    });
+                    if(res2.ok) {
+                        const data = await res2.json();
+                        let r = data.choices[0].message.content.replace(/```html/g, '').replace(/```/g, '').trim();
+                        document.getElementById('todo-list').innerHTML = r;
+                    } else { throw new Error("Failed"); }
+                } catch(e) { document.getElementById('todo-list').innerHTML = '<li style="color:var(--text-muted);">Could not load recommendations.</li>'; }
+            })();
+
+            // Initialize charts
+            const commonOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10, family: "'Outfit', sans-serif" } } },
+                    y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10, family: "'Outfit', sans-serif" } }, border: { display: false } }
+                }
+            };
+
+            new Chart(document.getElementById('progressChart'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [progress, 100 - progress],
+                        backgroundColor: ['#38A169', '#E2E8F0'],
+                        borderWidth: 0, cutout: '80%'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false } } }
+            });
+            document.querySelector('.circle-progress div div:first-child').textContent = `${progress}%`;
+
+            new Chart(document.getElementById('healthChart'), {
+                type: 'line',
+                data: { labels, datasets: [{ data: healthData, borderColor: '#38A169', backgroundColor: 'rgba(56, 161, 105, 0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#38A169' }] },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 100, ticks: { stepSize: 25 }, border: { display: false } } } }
+            });
+
+            new Chart(document.getElementById('moistureChart'), {
+                type: 'line',
+                data: { labels, datasets: [{ data: moistureData, borderColor: '#3182CE', tension: 0.4, pointBackgroundColor: '#3182CE' }] },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 100, ticks: { stepSize: 25 }, border: { display: false } } } }
+            });
+
+            new Chart(document.getElementById('tempHumChart'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Temp (°C)', data: tempData, borderColor: '#DD6B20', tension: 0.4, pointBackgroundColor: '#DD6B20', yAxisID: 'y' },
+                        { label: 'Humidity (%)', data: humData, borderColor: '#3182CE', tension: 0.4, pointBackgroundColor: '#3182CE', yAxisID: 'y1' }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { type: 'linear', display: true, position: 'left', min: 0, max: 50, border: { display: false }, grid: { color: '#f0f0f0' } },
+                        y1: { type: 'linear', display: true, position: 'right', min: 0, max: 100, border: { display: false }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('rainChart'), {
+                type: 'bar',
+                data: { labels, datasets: [{ data: rainData, backgroundColor: '#4299E1', borderRadius: 2, barPercentage: 0.4 }] },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, ticks: { stepSize: 10 }, border: { display: false } } } }
+            });
+
+            new Chart(document.getElementById('stressChart'), {
+                type: 'line',
+                data: { labels, datasets: [{ data: stressData, borderColor: '#DD6B20', backgroundColor: 'rgba(221, 107, 32, 0.2)', fill: true, tension: 0.4, pointBackgroundColor: '#DD6B20' }] },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 100, ticks: { stepSize: 25 }, border: { display: false } } } }
+            });
+
+            const evData = [
+                eventCounts['Irrigation'] || 0,
+                eventCounts['Fertilizer'] || 0,
+                eventCounts['Pesticide'] || 0,
+                eventCounts['Inspection'] || 0,
+                eventCounts['Others'] || 0
+            ];
+            // if all are 0, just put a dummy slice so chart doesn't break
+            if(evData.reduce((a,b)=>a+b, 0) === 0) evData[4] = 1;
+
+            new Chart(document.getElementById('eventChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Irrigation', 'Fertilizer', 'Pesticide', 'Inspection', 'Others'],
+                    datasets: [{ data: evData, backgroundColor: ['#3182CE', '#38A169', '#D69E2E', '#805AD5', '#A0AEC0'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { boxWidth: 10, font: { size: 11 }, padding: 15 } } } }
+            });
+            
+        } catch(e) {
+            console.error("Error loading dashboard data:", e);
+            showNoCrop(mainEl);
+        }
+    });
+</script>
+
+</body>
+</html>
