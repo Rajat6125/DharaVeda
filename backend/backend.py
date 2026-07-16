@@ -923,11 +923,11 @@ def process_daily_crop_alerts_cron():
             llm_resp = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 json={
-                    "model": "google/gemma-3-27b-it:free",
+                    "model": "meta-llama/llama-3.3-70b-instruct:free",
                     "messages": [{"role": "user", "content": prompt}]
                 },
                 headers={"Authorization": f"Bearer {openrouter_key}"},
-                timeout=20
+                timeout=30
             )
             
             if llm_resp.ok:
@@ -967,7 +967,7 @@ def process_daily_crop_alerts_cron():
                     requests.post("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_alerts", json=alert_payload, headers=headers)
                     
                     # 2. Update crop_condition_snapshot
-                    cond_id = cond_data.get("Record_Number")
+                    cond_id = cond_data.get("Record_Number") or cond_data.get("id")
                     if cond_id:
                         patch_headers = headers.copy()
                         patch_headers["Prefer"] = "return=minimal"
@@ -989,6 +989,51 @@ def process_daily_crop_alerts_cron():
                     )
                 except Exception as e:
                     print("Alert AI Parsing error:", e, "Response:", res_content)
+            else:
+                print(f"LLM request failed: {llm_resp.status_code} {llm_resp.text}")
+                parsed = {
+                    "priority": "Medium",
+                    "category": "General",
+                    "title": "Daily Status Update",
+                    "description": "System generated daily check. AI service unavailable.",
+                    "stress_level": 5,
+                    "health_score": 8,
+                    "growth_progress": 50
+                }
+                # 1. Insert into crop_alerts
+                alert_payload = {
+                    "crop_id": crop_id,
+                    "crop": crop_name,
+                    "priority": parsed.get("priority", "Low"),
+                    "category": parsed.get("category", "General"),
+                    "title": parsed.get("title", "Daily Update"),
+                    "description": parsed.get("description", "Condition normal"),
+                    "status": "Open",
+                    "time": datetime.now(timezone.utc).isoformat()
+                }
+                requests.post("https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_alerts", json=alert_payload, headers=headers)
+                
+                # 2. Update crop_condition_snapshot
+                cond_id = cond_data.get("Record_Number") or cond_data.get("id")
+                if cond_id:
+                    patch_headers = headers.copy()
+                    patch_headers["Prefer"] = "return=minimal"
+                    requests.patch(
+                        "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_condition_snapshot",
+                        params={"Record_Number": f"eq.{cond_id}"},
+                        json={"stress_level": parsed.get("stress_level", 5), "health_score": parsed.get("health_score", 8)},
+                        headers=patch_headers
+                    )
+                
+                # 3. Update crop_system
+                sys_patch_headers = headers.copy()
+                sys_patch_headers["Prefer"] = "return=minimal"
+                requests.patch(
+                    "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_system",
+                    params={"crop_id": f"eq.{crop_id}"},
+                    json={"health_score": parsed.get("health_score", 8), "growth_progress": parsed.get("growth_progress", 10)},
+                    headers=sys_patch_headers
+                )
             
             time.sleep(2)
             
