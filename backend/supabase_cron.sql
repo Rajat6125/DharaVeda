@@ -24,8 +24,8 @@ SELECT cron.schedule(
 -- -----------------------------------------------------------------------------
 
 SELECT cron.schedule(
-    'update_crop_weather_morning',
-    '30 0 * * *',
+    'update_crop_weather_hourly',
+    '0 * * * *',
     $$
         SELECT net.http_post(
             url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
@@ -35,17 +35,7 @@ SELECT cron.schedule(
     $$
 );
 
-SELECT cron.schedule(
-    'update_crop_weather_evening',
-    '30 12 * * *',
-    $$
-        SELECT net.http_post(
-            url := 'https://dharaveda.onrender.com/api/cron/update_crop_weather',
-            headers := '{"Content-Type": "application/json"}'::jsonb,
-            timeout_milliseconds := 5000
-        );
-    $$
-);
+-- The evening schedule is removed since it's now hourly.
 
 -- -----------------------------------------------------------------------------
 -- AUTOMATED CROP ALERTS & CONDITION UPDATES
@@ -57,7 +47,7 @@ SELECT cron.schedule(
 
 SELECT cron.schedule(
     'process_daily_crop_alerts',
-    '30 12 * * *',
+    '0 * * * *',
     $$
         SELECT net.http_post(
             url := 'https://dharaveda.onrender.com/api/cron/process_daily_crop_alerts',

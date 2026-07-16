@@ -783,6 +783,17 @@ def process_weather_cron():
             
             if not latt or not long: continue
             
+            # Check if weather already exists for today
+            today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            weather_check_resp = requests.get(
+                "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_weather",
+                headers=headers,
+                params={"crop_id": f"eq.{crop_id}", "date": f"gte.{today_str}T00:00:00Z", "limit": "1"}
+            )
+            if weather_check_resp.ok and len(weather_check_resp.json()) > 0:
+                print(f"Weather already updated today for crop {crop_id}, skipping.")
+                continue
+            
             temp, rain, humidity, wind = 0, 0, 0, 0
             
             try:
@@ -866,6 +877,17 @@ def process_daily_crop_alerts_cron():
             crop_name = crop.get("crop")
             
             if not crop_id: continue
+            
+            # Check if alert already exists for today to avoid duplicates on retry
+            today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            alerts_resp = requests.get(
+                "https://hjzqywjtssveipriurgn.supabase.co/rest/v1/crop_alerts",
+                headers=headers,
+                params={"crop_id": f"eq.{crop_id}", "time": f"gte.{today_str}T00:00:00Z", "limit": "1"}
+            )
+            if alerts_resp.ok and len(alerts_resp.json()) > 0:
+                print(f"Alert already processed today for crop {crop_id}, skipping.")
+                continue
             
             # Fetch latest data
             cond_resp = requests.get(
