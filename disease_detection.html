@@ -401,16 +401,25 @@
         }, 800);
     }
 
+    let lastSender = null;
+
     function appendMessage(sender, text, isGreeting = false) {
         const container = isGreeting ? document.getElementById('chat-container') : document.getElementById('ai-chat-container');
         const div = document.createElement('div');
         div.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
 
         if (sender === 'bot') {
-            div.innerHTML = `
-                <img src="Pic/Disease_Detection.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
-                <div class="msg-bubble msg-bot">${text}</div>
-            `;
+            if (lastSender !== 'bot') {
+                div.innerHTML = `
+                    <img src="Pic/Disease_Detection.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
+                    <div class="msg-bubble msg-bot">${text}</div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div style="width: 32px; height: 32px; flex-shrink: 0;"></div>
+                    <div class="msg-bubble msg-bot">${text}</div>
+                `;
+            }
         } else {
             div.innerHTML = `
                 <div class="msg-bubble msg-user">${text}</div>
@@ -420,6 +429,7 @@
         
         container.appendChild(div);
         scrollToBottom();
+        lastSender = sender;
     }
 
     function scrollToBottom() {
@@ -450,7 +460,9 @@
 
     function extractSection(text, sectionName) {
         if (!text) return '';
-        const regex = new RegExp(sectionName + ':\\s*([\\s\\S]*?)(?=\\n[A-Z][a-z]+:|$)');
+        const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedSectionName = escapeRegex(sectionName);
+        const regex = new RegExp(`(?:^|\\n)\\*?\\*?${escapedSectionName}:?\\*?\\*?\\s*\\n?([\\s\\S]*?)(?:\\n\\*?\\*?[A-Z][A-Za-z\\s]+:?\\*?\\*?\\s*\\n?|$)`, 'i');
         const match = text.match(regex);
         return match ? match[1].trim() : '';
     }
@@ -475,15 +487,13 @@
         
         document.getElementById('upload-card').style.display = 'none';
 
-        // Show spinner
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = 'flex';
+        // Show loading gif chat bubble
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = "loading-msg";
+        loadingDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease; margin-top: 10px;";
+        loadingDiv.innerHTML = `<img src="Pic/loading.gif" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-left: -4px; margin-top: -2px;">`;
+        document.getElementById('chat-container').appendChild(loadingDiv);
         scrollToBottom();
-
-        const subtextEl = document.getElementById('loading-subtext');
-        const slowHintTimer = setTimeout(() => {
-            subtextEl.textContent = 'Server is waking up, this may take ~30s…';
-        }, 6000);
 
         const formData = new FormData();
         formData.append('image', selectedFile);
@@ -499,8 +509,8 @@
             });
 
             clearTimeout(fetchTimeout);
-            clearTimeout(slowHintTimer);
-            overlay.style.display = 'none';
+            loadingDiv.remove();
+            lastSender = null; // reset avatar logic
 
             const result = await response.json();
 
@@ -512,6 +522,15 @@
             // ── Success ──────────────────────────────────────────────
             const isHealthy = result.disease.toLowerCase().includes('healthy');
             const formattedDisease = result.disease.replace(/___/g, ' — ').replace(/_/g, ' ');
+            
+            const aiDetails = result.ai_details || '';
+            const causeDesc = extractSection(aiDetails, 'Cause') || 'A plant condition detected based on visible leaf symptoms.';
+            const symptomsText = extractSection(aiDetails, 'Symptoms');
+            const treatmentText = extractSection(aiDetails, 'Treatment');
+            const organicControlText = extractSection(aiDetails, 'Organic Control');
+
+            let combinedTreatment = formatList(treatmentText);
+            if (organicControlText) combinedTreatment += '<br><strong>Organic Options:</strong><br>' + formatList(organicControlText);
 
             chatState.diseaseData = {
                 name: formattedDisease,
@@ -533,27 +552,56 @@
                     </div>
                     <div class="diag-info" style="flex: 1;">
                         <p class="diag-label">Diagnosed Disease</p>
-                        <h3 class="diag-title" style="font-size: 18px;">${formattedDisease}</h3>
+                        <h3 class="diag-title" style="font-size: 18px; color: #1a4d2e; font-weight: 700; margin-bottom: 12px;">${formattedDisease}</h3>
                         
-                        <div class="diag-conf-row">
-                            <div class="diag-conf-bar">
-                                <div class="diag-conf-fill" style="width: ${result.confidence}%"></div>
+                        <div class="diag-conf-row" style="display: flex; align-items: center; gap: 10px;">
+                            <div class="diag-conf-bar" style="flex: 1; background: #e0e0e0; height: 12px; border-radius: 6px; overflow: hidden;">
+                                <div class="diag-conf-fill" style="background: #3b6b3f; height: 100%; width: ${result.confidence}%"></div>
                             </div>
-                            <span class="diag-conf-text">${result.confidence}%</span>
+                            <span class="diag-conf-text" style="font-size: 14px; font-weight: 700; color: #3b6b3f;">${result.confidence}%</span>
                         </div>
                     </div>
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
                 
-                <div id="card-streaming-content" style="font-size: 14px; color: #444; line-height: 1.6;">
-                    <div style="display: flex; align-items: center; gap: 8px; color: #888;">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i> Generating disease details in real time...
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <div class="diag-section-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <div class="diag-icon-box" style="width: 28px; height: 28px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-green);"><i class="fa-regular fa-file-lines"></i></div>
+                            <h4 class="diag-section-title" style="color: #1a4d2e; font-size: 16px; margin: 0; font-weight: 700;">Description</h4>
+                        </div>
+                        <p style="color: #444; font-size: 13px; line-height: 1.6; margin: 0; padding-left: 36px;">${causeDesc}</p>
                     </div>
+                    
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 5px 0;">
+                    
+                    <div>
+                        <div class="diag-section-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <div class="diag-icon-box" style="width: 28px; height: 28px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-green);"><i class="fa-solid fa-magnifying-glass"></i></div>
+                            <h4 class="diag-section-title" style="color: #1a4d2e; font-size: 16px; margin: 0; font-weight: 700;">Symptoms</h4>
+                        </div>
+                        <div class="diag-list" style="color: #444; font-size: 13px; line-height: 1.6; padding-left: 36px;">
+                            ${formatList(symptomsText)}
+                        </div>
+                    </div>
+                    
+                    ${!isHealthy ? `
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 5px 0;">
+                    <div>
+                        <div class="diag-section-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <div class="diag-icon-box" style="width: 28px; height: 28px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-green);"><i class="fa-solid fa-shield-halved"></i></div>
+                            <h4 class="diag-section-title" style="color: #1a4d2e; font-size: 16px; margin: 0; font-weight: 700;">Treatment</h4>
+                        </div>
+                        <div class="diag-list" style="color: #444; font-size: 13px; line-height: 1.6; padding-left: 36px;">
+                            ${combinedTreatment}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
-                <div class="diag-footer">
+                <div class="diag-footer" style="display: flex; align-items: center; gap: 8px; color: #888; font-size: 11px;">
                     <i class="fa-solid fa-circle-info"></i>
                     <span>Diagnosis is AI-generated and may vary based on real-time field conditions.</span>
                 </div>
@@ -565,29 +613,19 @@
             scrollToBottom();
 
             // Setup Chat Context
-            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).`;
+            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).
+Symptoms: ${symptomsText}
+Cause: ${causeDesc}
+Treatment: ${treatmentText}
+Answer any further questions the farmer has about this disease, its treatment, or general plant care. Keep answers concise, helpful, and friendly. Use plain text formatting, bullet points are okay.`;
             
             chatState.history = [
-                { role: 'system', content: systemPrompt }
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `I have received the diagnosis details for ${formattedDisease}. Please provide a very brief comforting response (1 sentence max) and then ask: "Do you have any other concerns regarding the diagnosis or diseases?"` }
             ];
 
-            const detailsPrompt = `Please provide a short description (1-2 sentences) of ${formattedDisease}.
-Then, add an empty line and write "**Symptoms**" followed by a bulleted list of the symptoms.
-Then, add an empty line and write "**Treatment**" followed by a bulleted list of the treatments.
-Ensure the response is properly spaced, easy to read, and very concise.`;
-            
-            // Stream the details into the card
-            await streamCardDetails([{ role: 'system', content: systemPrompt }, { role: 'user', content: detailsPrompt }]);
-
-            // Update history with generated details context
-            const generatedDetails = document.getElementById('card-streaming-content').innerHTML;
-            chatState.history.push({ role: 'assistant', content: "Diagnosis Details:\n" + generatedDetails });
-            
-            // Setup follow-up chat
-            const followUpPrompt = `I have received the diagnosis details for ${formattedDisease}. Please provide a very brief comforting response (1 sentence max) and then ask: "Do you have any other concerns regarding the diagnosis or diseases?"`;
-
             // Use the AI API to stream the follow-up response in chat bubbles
-            await streamAIResponse([{ role: 'system', content: systemPrompt }, { role: 'user', content: followUpPrompt }]);
+            await streamAIResponse(chatState.history);
             
             showChatInput();
             scrollToBottom();
@@ -639,53 +677,6 @@ Ensure the response is properly spaced, easy to read, and very concise.`;
 
     // Removed simulateAIStream since we now use streamAIResponse for the follow-up message
 
-    async function streamCardDetails(messages) {
-        const container = document.getElementById('card-streaming-content');
-        if (!container) return;
-        
-        try {
-            const headers = { 'Content-Type': 'application/json' };
-            if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
-
-            const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ messages })
-            });
-
-            if (!response.ok) throw new Error('HTTP ' + response.status);
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let fullText = '';
-
-            outer: while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-
-                while (buffer.includes('\n')) {
-                    const idx = buffer.indexOf('\n');
-                    const line = buffer.substring(0, idx).trim();
-                    buffer = buffer.substring(idx + 1);
-
-                    if (line.startsWith('data: ')) {
-                        const token = line.substring(6);
-                        if (token === '[DONE]') break outer;
-                        if (token.startsWith('[ERROR]')) break outer;
-
-                        fullText += token;
-                        container.innerHTML = renderMarkdown(fullText);
-                        scrollToBottom();
-                    }
-                }
-            }
-        } catch (err) {
-            container.innerHTML = 'Details could not be generated at this time.';
-        }
-    }
 
     async function streamAIResponse(messages) {
         chatState.isStreaming = true;
@@ -802,6 +793,7 @@ Ensure the response is properly spaced, easy to read, and very concise.`;
             activeBubble.textContent = 'Sorry, I couldn\'t connect. Please try again.';
         } finally {
             chatState.isStreaming = false;
+            lastSender = 'bot';
             if (fullReply) chatState.history.push({ role: 'assistant', content: fullReply });
             if (sendBtn) sendBtn.disabled = false;
             const chatInput = document.getElementById('chat-input');
