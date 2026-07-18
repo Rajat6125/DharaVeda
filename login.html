@@ -309,6 +309,9 @@
                         localStorage.setItem('dharaveda_user', JSON.stringify(data.user));
                     }
                     window.location.href = 'home.html';
+                } else if (response.status === 404 || data.message === 'User not found') {
+                    // User doesn't exist — redirect to register with email pre-filled
+                    window.location.href = `register.html?email=${encodeURIComponent(emailPhone)}`;
                 } else {
                     alert(data.message || 'Login failed. Please check your credentials.');
                 }

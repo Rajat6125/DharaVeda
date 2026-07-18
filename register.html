@@ -363,6 +363,13 @@
             
             if (emailParam && contactInput) {
                 contactInput.value = emailParam;
+
+                // Show a helpful hint that they were redirected from login
+                const header = document.querySelector('.header p');
+                if (header) {
+                    header.textContent = 'No account found — create one to get started';
+                    header.style.color = '#F2C94C';
+                }
             }
         });
 
