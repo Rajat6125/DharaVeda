@@ -14,7 +14,6 @@
             --text-primary: #1E2A1F;
             --text-secondary: #555555;
             --accent-green: #3B6B3F;
-            --light-green: #E8F5E9;
             --font-family: 'Outfit', sans-serif;
         }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -29,8 +28,7 @@
         }
         body::before {
             content:'';
-            position:fixed; top:0; left:0;
-            width:100%; height:100%;
+            position:fixed; top:0; left:0; width:100%; height:100%;
             background-image: url('Pic/Wall1.jpg');
             background-size:cover; background-position:center;
             z-index:-1;
@@ -38,7 +36,6 @@
         .app-container {
             width:100%; max-width:480px;
             height:100vh; height:100dvh;
-            background: rgba(0,0,0,0);
             position:relative; display:flex; flex-direction:column;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             overflow: hidden;
@@ -48,114 +45,99 @@
             padding:16px 20px;
             background: rgba(255,255,255,0.85);
             border-bottom: 1px solid rgba(255,255,255,0.5);
-            z-index:10; flex-shrink:0; position:sticky; top:0;
+            z-index:10; flex-shrink:0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-bottom-left-radius:20px; border-bottom-right-radius:20px;
         }
         .header-left { display:flex; align-items:center; gap:12px; }
         .header-info h2 { font-size:18px; font-weight:700; color:var(--accent-green); }
         .header-info p { font-size:12px; color:var(--text-secondary); }
-        .header-right { display:flex; gap:16px; }
         .header-btn { background:none; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; }
         .main-content {
             flex:1; min-height:0; overflow-y:auto;
             -webkit-overflow-scrolling:touch;
             padding:20px;
-            display:flex; flex-direction:column; gap:20px; scroll-behavior:smooth;
+            display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth;
         }
         .main-content::-webkit-scrollbar { width:6px; }
         .main-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .form-card {
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Upload card ─────────────────────────────────────── */
+        .upload-card {
             background:rgba(240,248,241,0.95); border-radius:20px; padding:20px;
             box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.5);
-            animation:fadeIn 0.3s ease; width:100%;
+            animation:fadeIn 0.3s ease;
         }
-        .form-header { margin-bottom:16px; }
-        .form-header h3 { font-size:16px; color:var(--accent-green); display:flex; align-items:center; gap:8px; margin-bottom:4px; }
-        .form-header p { font-size:12px; color:var(--text-secondary); }
+        .upload-card h3 { font-size:15px; color:var(--accent-green); display:flex; align-items:center; gap:8px; margin-bottom:4px; font-weight:700; }
+        .upload-card p { font-size:12px; color:var(--text-secondary); margin-bottom:14px; }
         .upload-area {
             border:2px dashed rgba(59,107,63,0.35);
             border-radius:14px; padding:36px 20px;
             background:white; cursor:pointer;
-            transition:all 0.3s ease; text-align:center;
-            margin-bottom:16px;
+            transition:all 0.3s; text-align:center;
         }
-        .upload-area:hover { border-color:var(--accent-green); background:#f8fff8; }
+        .upload-area:hover, .upload-area.drag-over { border-color:var(--accent-green); background:#f8fff8; }
         .upload-area i { font-size:36px; color:var(--accent-green); margin-bottom:10px; display:block; }
-        .upload-area p { font-size:13px; color:var(--text-secondary); font-weight:500; }
-        #image-preview {
-            width:100%; max-height:260px; object-fit:contain;
-            border-radius:12px; display:none; margin-bottom:14px; background:#000;
-        }
-        .submit-btn {
-            width:100%; background:var(--accent-green); color:white; border:none;
-            padding:12px; border-radius:12px; font-size:14px; font-weight:600;
-            font-family:var(--font-family); cursor:pointer;
-            display:flex; justify-content:center; align-items:center; gap:8px;
-            transition:background 0.2s;
-        }
-        .submit-btn:hover { background:#2D5230; }
-        .submit-btn:disabled { background:#000000; color:#4ade80; cursor:not-allowed; }
-        /* ── Diagnosis Result Card ──────────────────────────────────────── */
+        .upload-area p { font-size:13px; color:var(--text-secondary); font-weight:500; margin-bottom:0; }
+
+        /* ── Diagnosis result card (compact) ─────────────────── */
         .diag-card {
             background: linear-gradient(145deg, #ffffff, #f5fbf5);
-            border-radius: 20px; padding: 20px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+            border-radius: 18px; padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             border: 1px solid rgba(59,107,63,0.12);
-            animation: fadeIn 0.4s ease; width: 100%;
+            animation: fadeIn 0.4s ease;
         }
-        .diag-card-title {
-            font-size:17px; font-weight:800; color:#1a4d2e;
-            display:flex; align-items:center; gap:8px; margin-bottom:5px;
-        }
-        .diag-card-subtitle { font-size:12px; color:#666; line-height:1.4; margin-bottom:14px; }
-        .diag-top-row {
-            display:flex; gap:14px; align-items:flex-start; margin-bottom:16px;
-        }
-        .diag-gradcam-wrap {
-            flex:0 0 110px; width:110px; height:110px;
+        .diag-row { display:flex; gap:14px; align-items:center; }
+        .diag-img {
+            flex:0 0 90px; width:90px; height:90px;
             border-radius:12px; overflow:hidden;
             box-shadow:0 3px 10px rgba(0,0,0,0.15);
             border:2px solid rgba(59,107,63,0.2);
         }
-        .diag-gradcam-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-        .diag-info-side { flex:1; min-width:0; display:flex; flex-direction:column; }
-        .diag-label-small { font-size:10px; color:#777; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
-        .diag-disease-name {
-            font-size:16px; font-weight:800; color:#1a4d2e;
-            line-height:1.3; margin-bottom:10px; word-break:break-word;
+        .diag-img img { width:100%; height:100%; object-fit:cover; display:block; }
+        .diag-info { flex:1; min-width:0; }
+        .diag-label { font-size:10px; color:#777; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+        .diag-name { font-size:15px; font-weight:800; color:#1a4d2e; line-height:1.3; margin-bottom:8px; word-break:break-word; }
+        .diag-bar-track { background:#e9ecef; border-radius:12px; height:9px; overflow:hidden; margin-bottom:3px; }
+        .diag-bar-fill { height:100%; border-radius:12px; transition:width 1s ease; }
+        .diag-pct { font-size:10px; font-weight:800; text-align:right; display:block; }
+        .diag-footer { font-size:10px; color:#aaa; margin-top:10px; display:flex; align-items:center; gap:5px; }
+
+        /* ── Chat bubbles ─────────────────────────────────────── */
+        .bubble-row { display:flex; gap:10px; align-items:flex-end; animation:fadeIn 0.3s ease; }
+        .bubble-row.user { justify-content:flex-end; }
+        .avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; align-self:flex-start; margin-top:2px; }
+        .avatar-spacer { width:32px; flex-shrink:0; }
+        .bubble {
+            padding:10px 14px; border-radius:18px;
+            font-size:13px; line-height:1.6; max-width:82%;
+            box-shadow:0 2px 6px rgba(0,0,0,0.06);
         }
-        .diag-conf-track {
-            background:#e9ecef; border-radius:12px; height:10px; overflow:hidden; margin-bottom:3px;
+        .bubble.bot {
+            background:white; color:var(--text-primary);
+            border-top-left-radius:4px;
         }
-        .diag-conf-fill { height:100%; border-radius:12px; transition:width 1s ease; }
-        .diag-conf-pct { font-size:10px; font-weight:800; text-align:right; display:block; margin-bottom:8px; }
-        .diag-divider { border:none; border-top:1px solid rgba(0,0,0,0.07); margin:12px 0; }
-        /* ── Info sections ─────────────────────────────────────────────── */
-        .diag-section { margin-bottom:14px; }
-        .diag-section:last-child { margin-bottom:0; }
-        .diag-section-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-        .diag-icon-pill {
-            width:28px; height:28px; border-radius:50%;
-            background:#e8f5e9; display:flex; align-items:center;
-            justify-content:center; color:var(--accent-green); font-size:12px; flex-shrink:0;
+        .bubble.user {
+            background:#FDE047; color:var(--text-primary);
+            border-top-right-radius:4px;
         }
-        .diag-section-label { font-size:14px; font-weight:700; color:#1a4d2e; }
-        .diag-section-body {
-            font-size:13px; color:#444; line-height:1.7; padding-left:36px;
-            min-height:18px;
+        /* image bubble from user */
+        .bubble.user-img {
+            background:#FDE047; padding:6px;
+            border-top-right-radius:4px;
         }
-        /* streaming cursor blink */
-        .streaming-cursor::after { content:'▌'; animation:blink 0.7s step-end infinite; color:var(--accent-green); }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        .section-loading { color:#aaa; font-style:italic; font-size:12px; }
-        /* ── Chat input bar ─────────────────────────────────────────────── */
+        .bubble.user-img img {
+            width:160px; height:160px; object-fit:cover;
+            border-radius:12px; display:block;
+        }
+
+        /* ── Chat input bar ──────────────────────────────────── */
         #chat-input-bar {
             display:flex; align-items:center; gap:10px;
             padding:12px 16px 14px;
-            background:transparent; border-top:none;
-            flex-shrink:0; position:sticky; bottom:0; z-index:10;
+            flex-shrink:0;
         }
         #chat-input-wrap {
             flex:1; display:flex; align-items:center; gap:8px;
@@ -165,17 +147,15 @@
             border-radius:28px; padding:10px 16px;
             box-shadow:0 4px 15px rgba(0,0,0,0.15); transition:all 0.2s;
         }
-        #chat-input-wrap:focus-within {
-            border-color:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,0.2);
-        }
-        #chat-input-wrap .chat-leaf-icon { font-size:14px; color:#4ade80; opacity:0.9; flex-shrink:0; }
+        #chat-input-wrap:focus-within { border-color:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,0.2); }
+        #chat-input-wrap .leaf-icon { font-size:14px; color:#4ade80; opacity:0.9; flex-shrink:0; }
         #chat-input {
             flex:1; border:none; background:transparent; font-size:13px;
-            font-family:var(--font-family); outline:none; color:#ffffff; min-width:0;
+            font-family:var(--font-family); outline:none; color:#fff; min-width:0;
         }
-        #chat-input::placeholder { color:rgba(255,255,255,0.6); }
+        #chat-input::placeholder { color:rgba(255,255,255,0.55); }
         #chat-input:disabled { cursor:not-allowed; }
-        #chat-send-btn {
+        #send-btn {
             width:42px; height:42px; border-radius:50%; border:none;
             background:#1E2A1F; color:#4ade80; font-size:15px; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
@@ -183,13 +163,11 @@
             box-shadow:0 2px 8px rgba(0,0,0,0.3); flex-shrink:0;
             border:1px solid rgba(255,255,255,0.1);
         }
-        #chat-send-btn:hover:not(:disabled) { background:#2a3a2b; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
-        #chat-send-btn:active:not(:disabled) { transform:scale(0.92); }
-        #chat-send-btn:disabled { background:#333333; color:#777777; box-shadow:none; cursor:not-allowed; opacity:0.7; }
-        #chat-input-bar.locked #chat-input-wrap {
-            background:rgba(40,40,40,0.7); border-color:rgba(255,255,255,0.05);
-        }
-        #chat-input-bar.locked .chat-leaf-icon { opacity:0.3; color:#ffffff; }
+        #send-btn:hover:not(:disabled) { background:#2a3a2b; }
+        #send-btn:active:not(:disabled) { transform:scale(0.92); }
+        #send-btn:disabled { background:#333; color:#777; box-shadow:none; cursor:not-allowed; opacity:0.7; }
+        #chat-input-bar.locked #chat-input-wrap { background:rgba(40,40,40,0.7); border-color:rgba(255,255,255,0.05); }
+        #chat-input-bar.locked .leaf-icon { opacity:0.3; color:#fff; }
     </style>
 </head>
 <body>
@@ -201,562 +179,459 @@
                 <img src="Pic/Disease_Detection.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
                 <div class="header-info">
                     <h2>Krsi Vaidyah</h2>
-                    <p>DharaVeda's AI-Powered Plant Disease Detection</p>
+                    <p>DharaVeda's AI-Powered Disease Detection</p>
                 </div>
             </div>
         </div>
-        <div class="header-right">
-            <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
-        </div>
+        <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
     </div>
 
-    <div class="main-content">
-        <div id="chat-container" style="display:flex;flex-direction:column;gap:12px;"></div>
-
-        <div class="form-card" id="upload-card" style="display:none;">
-            <div class="form-header">
-                <h3><i class="fa-solid fa-leaf"></i> Upload Leaf Image</h3>
-                <p>For best results, upload a clear, well-lit photo of a single leaf.</p>
-            </div>
-            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="previewImage(event)">
-            <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <p>Tap to upload an image</p>
-            </div>
-            <img id="image-preview" src="" alt="Preview">
-            <button class="submit-btn" id="submit-btn" style="display:none;" onclick="submitImage()">
-                <i class="fa-solid fa-magnifying-glass"></i> Analyse Disease
-            </button>
-        </div>
-
-        <div id="result-container" style="display:none;width:100%;"></div>
-        <div id="ai-chat-container" style="display:flex;flex-direction:column;gap:12px;margin-bottom:8px;"></div>
+    <div class="main-content" id="chat-feed">
+        <!-- bubbles injected here -->
     </div>
+
+    <!-- hidden file input -->
+    <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="onFileChosen(event)">
 
     <div id="chat-input-bar" class="locked">
         <div id="chat-input-wrap">
-            <i class="fa-solid fa-leaf chat-leaf-icon"></i>
-            <input id="chat-input" type="text" placeholder="Ask about the diagnosis…" autocomplete="off" disabled onkeypress="handleChatEnter(event)">
+            <i class="fa-solid fa-leaf leaf-icon"></i>
+            <input id="chat-input" type="text" placeholder="Ask about the disease…" autocomplete="off" disabled onkeydown="handleKey(event)">
         </div>
-        <button id="chat-send-btn" onclick="sendChatMessage()" disabled>
+        <button id="send-btn" onclick="sendChat()" disabled>
             <i class="fa-solid fa-paper-plane"></i>
         </button>
     </div>
 </div>
 
 <script>
-    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-        ? 'http://127.0.0.1:5000'
-        : 'https://dharaveda.onrender.com';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    ? 'http://127.0.0.1:5000'
+    : 'https://dharaveda.onrender.com';
 
-    const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token') || '';
+const jwtToken = localStorage.getItem('dharaveda_token') || localStorage.getItem('token') || '';
 
-    function getUserName() {
-        if (!jwtToken) return 'User';
-        try {
-            const payload = JSON.parse(atob(jwtToken.split('.')[1]));
-            return payload.name || payload.username || payload.sub || 'User';
-        } catch(e) { return 'User'; }
+function getUserName() {
+    if (!jwtToken) return 'User';
+    try { return JSON.parse(atob(jwtToken.split('.')[1])).name || 'User'; } catch { return 'User'; }
+}
+
+// ── state ──────────────────────────────────────────────────────────
+const state = { disease: null, confidence: 0, chatHistory: [] };
+let lastSender = null;
+
+// ── helpers ────────────────────────────────────────────────────────
+const feed = () => document.getElementById('chat-feed');
+function scrollBottom() { setTimeout(() => { const f = feed(); f.scrollTop = f.scrollHeight; }, 40); }
+
+function botAvatar(show) {
+    return show
+        ? `<img class="avatar" src="Pic/Disease_Detection.png" onerror="this.src='Pic/0Logo.png'">`
+        : `<div class="avatar-spacer"></div>`;
+}
+function userAvatar(show) {
+    return show
+        ? `<img class="avatar" src="Pic/User.png" onerror="this.src='Pic/0Logo.png'">`
+        : `<div class="avatar-spacer"></div>`;
+}
+
+// Add a bot text bubble, return the bubble element
+function addBotBubble() {
+    const showAvatar = lastSender !== 'bot';
+    lastSender = 'bot';
+    const row = document.createElement('div');
+    row.className = 'bubble-row';
+    row.innerHTML = `${botAvatar(showAvatar)}<div class="bubble bot"></div>`;
+    feed().appendChild(row);
+    scrollBottom();
+    return row.querySelector('.bubble');
+}
+
+// Add a user text bubble
+function addUserTextBubble(text) {
+    const showAvatar = lastSender !== 'user';
+    lastSender = 'user';
+    const row = document.createElement('div');
+    row.className = 'bubble-row user';
+    row.innerHTML = `<div class="bubble user">${text}</div>${userAvatar(showAvatar)}`;
+    feed().appendChild(row);
+    scrollBottom();
+}
+
+// Add a user image bubble
+function addUserImageBubble(src) {
+    const showAvatar = lastSender !== 'user';
+    lastSender = 'user';
+    const row = document.createElement('div');
+    row.className = 'bubble-row user';
+    row.innerHTML = `<div class="bubble user-img"><img src="${src}" alt="Uploaded leaf"></div>${userAvatar(showAvatar)}`;
+    feed().appendChild(row);
+    scrollBottom();
+}
+
+// Add loading dots bubble
+function addLoadingBubble() {
+    const row = document.createElement('div');
+    row.className = 'bubble-row';
+    row.id = 'loading-bubble';
+    row.innerHTML = `<img class="avatar" src="Pic/loading.gif" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`;
+    feed().appendChild(row);
+    scrollBottom();
+    return row;
+}
+
+// Stream text char by char into a bubble element
+async function streamInto(el, text, speed = 16) {
+    el.textContent = '';
+    for (let i = 0; i < text.length; i++) {
+        el.textContent += text[i];
+        await new Promise(r => setTimeout(r, speed));
+        if (i % 30 === 0) scrollBottom();
     }
+    scrollBottom();
+}
 
-    // ── Chat state ────────────────────────────────────────────────────────────
-    const chatState = {
-        diseaseData: null,
-        chatHistory: []
-    };
+// ── boot ──────────────────────────────────────────────────────────
+async function boot() {
+    const name = getUserName();
 
-    let lastSender = null;
+    const b1 = addBotBubble();
+    await streamInto(b1, `Namaste ${name}! 🌿`);
 
-    // ── Scroll helper ─────────────────────────────────────────────────────────
-    function scrollToBottom() {
-        setTimeout(() => {
-            const mc = document.querySelector('.main-content');
-            mc.scrollTop = mc.scrollHeight;
-        }, 50);
-    }
+    await new Promise(r => setTimeout(r, 350));
 
-    // ── Bot bubble ────────────────────────────────────────────────────────────
-    function addBotMessage(container) {
-        const containerId = container === 'post' ? 'ai-chat-container' : 'chat-container';
-        const showAvatar = lastSender !== 'bot';
-        lastSender = 'bot';
-        const msgDiv = document.createElement('div');
-        msgDiv.style.cssText = "display:flex;gap:10px;align-items:flex-start;animation:fadeIn 0.3s ease;";
-        const avatarHtml = showAvatar
-            ? `<img src="Pic/Disease_Detection.png" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-top:2px;flex-shrink:0;">`
-            : `<div style="width:32px;height:32px;flex-shrink:0;"></div>`;
-        msgDiv.innerHTML = `${avatarHtml}<div class="msg-bubble" style="background:white;padding:10px 14px;border-radius:12px;${showAvatar?'border-top-left-radius:0;':''}box-shadow:0 2px 5px rgba(0,0,0,0.05);font-size:13px;line-height:1.5;color:var(--text-primary);max-width:85%;"></div>`;
-        document.getElementById(containerId).appendChild(msgDiv);
-        scrollToBottom();
-        return msgDiv.querySelector('.msg-bubble');
-    }
+    const b2 = addBotBubble();
+    await streamInto(b2, "I'm Krsi Vaidyah. Upload a leaf photo and I'll diagnose the disease instantly.");
 
-    function addUserMessage(text) {
-        const containerId = chatState.diseaseData ? 'ai-chat-container' : 'chat-container';
-        const showAvatar = lastSender !== 'user';
-        lastSender = 'user';
-        const msgDiv = document.createElement('div');
-        msgDiv.style.cssText = "display:flex;gap:10px;align-items:flex-start;justify-content:flex-end;animation:fadeIn 0.3s ease;";
-        const avatarHtml = showAvatar
-            ? `<img src="Pic/User.png" onerror="this.src='Pic/Logo.png'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-top:2px;flex-shrink:0;">`
-            : `<div style="width:32px;height:32px;flex-shrink:0;"></div>`;
-        msgDiv.innerHTML = `<div style="background:#FDE047;color:var(--text-primary);padding:10px 14px;border-radius:12px;${showAvatar?'border-top-right-radius:0;':''}box-shadow:0 2px 5px rgba(0,0,0,0.05);font-size:13px;line-height:1.5;max-width:85%;">${text}</div>${avatarHtml}`;
-        document.getElementById(containerId).appendChild(msgDiv);
-        scrollToBottom();
-    }
+    await new Promise(r => setTimeout(r, 300));
 
-    function addLoadingBubble() {
-        const div = document.createElement('div');
-        div.id = 'loading-msg';
-        div.style.cssText = "display:flex;gap:10px;align-items:flex-start;animation:fadeIn 0.3s ease;";
-        div.innerHTML = `<img src="Pic/loading.gif" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-left:-4px;margin-top:-2px;">`;
-        document.getElementById('chat-container').appendChild(div);
-        scrollToBottom();
-        return div;
-    }
-
-    // ── Stream text char-by-char ──────────────────────────────────────────────
-    async function streamText(element, text, speed = 18) {
-        element.innerHTML = '';
-        for (let i = 0; i < text.length; i++) {
-            element.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
-            await new Promise(r => setTimeout(r, speed));
-        }
-    }
-
-    // ── Greeting on load ─────────────────────────────────────────────────────
-    async function showGreeting() {
-        const name = getUserName();
-        const b1 = addBotMessage('pre');
-        await streamText(b1, `Namaste ${name}! 🌿`);
-        await new Promise(r => setTimeout(r, 400));
-        const b2 = addBotMessage('pre');
-        await streamText(b2, "I'm Krsi Vaidyah, your plant health expert. Upload a leaf image and I'll diagnose any disease instantly.");
-        await new Promise(r => setTimeout(r, 300));
-        document.getElementById('upload-card').style.display = 'block';
-        scrollToBottom();
-    }
-
-    // ── Image preview ─────────────────────────────────────────────────────────
-    function previewImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            const preview = document.getElementById('image-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('upload-area').style.display = 'none';
-            document.getElementById('submit-btn').style.display = 'flex';
-            scrollToBottom();
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // ── Submit image for analysis ─────────────────────────────────────────────
-    async function submitImage() {
-        const fileInput = document.getElementById('file-input');
-        if (!fileInput.files[0]) return;
-
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analysing…';
-
-        const loadingDiv = addLoadingBubble();
-        scrollToBottom();
-
-        const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
-
-        try {
-            const resp = await fetch(`${API_BASE}/api/disease_detect`, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await resp.json();
-
-            loadingDiv.remove();
-
-            if (!data.success) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyse Disease';
-                const errBubble = addBotMessage('pre');
-                await streamText(errBubble, `⚠️ ${data.error || 'Could not analyse the image. Please try again.'}`);
-                return;
-            }
-
-            // Hide upload card
-            document.getElementById('upload-card').style.display = 'none';
-
-            // Store disease info
-            chatState.diseaseData = data;
-
-            // Render result card
-            renderResultCard(data);
-
-            // Stream the 3 sections from backend
-            await streamDiseaseInfo(data.disease, data.confidence);
-
-        } catch(err) {
-            loadingDiv.remove();
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyse Disease';
-            const errBubble = addBotMessage('pre');
-            await streamText(errBubble, '⚠️ Could not connect to the server. Please check your connection.');
-        }
-    }
-
-    // ── Render the diagnosis result card ──────────────────────────────────────
-    function renderResultCard(data) {
-        const container = document.getElementById('result-container');
-        container.style.display = 'block';
-
-        // Format disease name: "Apple___Cedar_apple_rust" → "Apple — Cedar apple rust"
-        const rawName = data.disease || 'Unknown';
-        const friendlyName = rawName.replace(/___/g, ' — ').replace(/_/g, ' ');
-
-        // Confidence colour
-        const pct = Math.min(100, Math.max(0, data.confidence || 0));
-        const confColor = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444';
-
-        // Top-k badge list (other candidates)
-        let topKHtml = '';
-        if (data.top_k && data.top_k.length > 1) {
-            topKHtml = `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">`;
-            data.top_k.slice(1).forEach(([name, prob]) => {
-                const n = name.replace(/___/g, ' — ').replace(/_/g, ' ');
-                topKHtml += `<span style="background:#f0f4f0;color:#555;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:500;">${n} <b>${(prob*100).toFixed(1)}%</b></span>`;
-            });
-            topKHtml += `</div>`;
-        }
-
-        container.innerHTML = `
-        <div class="diag-card">
-            <div class="diag-card-title"><i class="fa-solid fa-leaf" style="color:var(--accent-green);font-size:16px;"></i> Our Diagnosis</div>
-            <p class="diag-card-subtitle">Based on the provided leaf image, our AI model diagnosed the disease.</p>
-
-            <div class="diag-top-row">
-                <div class="diag-gradcam-wrap">
-                    <img src="${data.heatmap_base64 ? 'data:image/jpeg;base64,' + data.heatmap_base64 : document.getElementById('image-preview').src}" alt="Leaf analysis">
+    // show upload card as a bot "bubble" wrapper
+    const showAvatar = lastSender !== 'bot';
+    lastSender = 'bot';
+    const uploadRow = document.createElement('div');
+    uploadRow.className = 'bubble-row';
+    uploadRow.innerHTML = `
+        ${botAvatar(showAvatar)}
+        <div style="flex:1;max-width:82%;">
+            <div class="upload-card">
+                <h3><i class="fa-solid fa-leaf"></i> Upload Leaf Image</h3>
+                <p>Clear, well-lit photo of a single leaf works best.</p>
+                <div class="upload-area" id="upload-area"
+                    onclick="document.getElementById('file-input').click()"
+                    ondragover="event.preventDefault();this.classList.add('drag-over')"
+                    ondragleave="this.classList.remove('drag-over')"
+                    ondrop="onDrop(event)">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Tap to upload or drag &amp; drop</p>
                 </div>
-                <div class="diag-info-side">
-                    <span class="diag-label-small">Diagnosed Disease</span>
-                    <div class="diag-disease-name">${friendlyName}</div>
-                    <div class="diag-conf-track">
-                        <div class="diag-conf-fill" id="conf-fill" style="width:0%;background:${confColor};"></div>
-                    </div>
-                    <span class="diag-conf-pct" style="color:${confColor};">${pct.toFixed(2)}%</span>
-                    ${topKHtml}
-                </div>
-            </div>
-
-            <hr class="diag-divider">
-
-            <!-- Description -->
-            <div class="diag-section" id="sec-description">
-                <div class="diag-section-head">
-                    <div class="diag-icon-pill"><i class="fa-solid fa-file-lines"></i></div>
-                    <span class="diag-section-label">Description</span>
-                </div>
-                <div class="diag-section-body" id="body-description">
-                    <span class="section-loading">Loading description…</span>
-                </div>
-            </div>
-            <hr class="diag-divider">
-
-            <!-- Symptoms -->
-            <div class="diag-section" id="sec-symptoms">
-                <div class="diag-section-head">
-                    <div class="diag-icon-pill"><i class="fa-solid fa-magnifying-glass"></i></div>
-                    <span class="diag-section-label">Symptoms</span>
-                </div>
-                <div class="diag-section-body" id="body-symptoms">
-                    <span class="section-loading">Loading symptoms…</span>
-                </div>
-            </div>
-            <hr class="diag-divider">
-
-            <!-- Cause -->
-            <div class="diag-section" id="sec-cause">
-                <div class="diag-section-head">
-                    <div class="diag-icon-pill"><i class="fa-solid fa-virus"></i></div>
-                    <span class="diag-section-label">Cause</span>
-                </div>
-                <div class="diag-section-body" id="body-cause">
-                    <span class="section-loading">Loading cause…</span>
-                </div>
-            </div>
-            <hr class="diag-divider">
-
-            <!-- Treatment -->
-            <div class="diag-section" id="sec-treatment">
-                <div class="diag-section-head">
-                    <div class="diag-icon-pill"><i class="fa-solid fa-shield-halved"></i></div>
-                    <span class="diag-section-label">Treatment</span>
-                </div>
-                <div class="diag-section-body" id="body-treatment">
-                    <span class="section-loading">Loading treatment…</span>
-                </div>
-            </div>
-            <hr class="diag-divider">
-
-            <!-- Prevention -->
-            <div class="diag-section" id="sec-prevention">
-                <div class="diag-section-head">
-                    <div class="diag-icon-pill"><i class="fa-solid fa-shield"></i></div>
-                    <span class="diag-section-label">Prevention</span>
-                </div>
-                <div class="diag-section-body" id="body-prevention">
-                    <span class="section-loading">Loading prevention…</span>
-                </div>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:6px;color:#999;font-size:11px;margin-top:14px;">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>Consult a local agronomist for confirmation.</span>
             </div>
         </div>`;
+    feed().appendChild(uploadRow);
+    scrollBottom();
+}
 
-        // Animate confidence bar
-        setTimeout(() => {
-            const fill = document.getElementById('conf-fill');
-            if (fill) fill.style.width = pct + '%';
-        }, 300);
+// ── file handling ──────────────────────────────────────────────────
+function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-area').classList.remove('drag-over');
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) processFile(file);
+}
 
-        scrollToBottom();
+function onFileChosen(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+}
+
+function processFile(file) {
+    // Hide upload card row
+    document.getElementById('upload-area').closest('.bubble-row').remove();
+
+    const reader = new FileReader();
+    reader.onload = async ev => {
+        const imgSrc = ev.target.result;
+        // Show user image bubble
+        addUserImageBubble(imgSrc);
+        // Auto-submit
+        await analyseImage(file, imgSrc);
+    };
+    reader.readAsDataURL(file);
+}
+
+// ── analyse ────────────────────────────────────────────────────────
+async function analyseImage(file, imgSrc) {
+    const loader = addLoadingBubble();
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    let data;
+    try {
+        const resp = await fetch(`${API_BASE}/api/disease_detect`, { method:'POST', body:formData });
+        data = await resp.json();
+    } catch {
+        loader.remove();
+        const b = addBotBubble();
+        await streamInto(b, '⚠️ Could not reach the server. Check your connection and try again.');
+        return;
     }
 
-    // ── Stream disease info sections via SSE ──────────────────────────────────
-    async function streamDiseaseInfo(disease, confidence) {
-        const sectionOrder = ['description', 'symptoms', 'cause', 'treatment', 'prevention'];
+    loader.remove();
 
-        try {
-            const resp = await fetch(`${API_BASE}/api/disease_info_stream`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ disease, confidence })
-            });
+    if (!data.success) {
+        const b = addBotBubble();
+        await streamInto(b, `⚠️ ${data.error || 'Could not analyse the image. Please try a clearer photo.'}`);
+        return;
+    }
 
-            if (!resp.ok) throw new Error('Stream request failed');
+    // Save state
+    state.disease = data.disease;
+    state.confidence = data.confidence;
 
-            const reader = resp.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
+    // Render compact diagnosis card
+    renderDiagCard(data, imgSrc);
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buffer += decoder.decode(value, { stream: true });
+    await new Promise(r => setTimeout(r, 400));
 
-                const lines = buffer.split('\n');
-                buffer = lines.pop(); // keep incomplete line
+    // Stream 3 info messages then unlock chat
+    await streamInfoMessages(data.disease, data.confidence);
+}
 
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-                    const raw = line.slice(6).trim();
-                    if (raw === '[DONE]') {
-                        unlockChat();
-                        return;
-                    }
-                    try {
-                        const event = JSON.parse(raw);
-                        const section = event.section;
-                        const content = event.content || '';
-                        const bodyEl = document.getElementById('body-' + section);
-                        if (!bodyEl) continue;
+// ── compact diag card ──────────────────────────────────────────────
+function renderDiagCard(data, imgSrc) {
+    const showAvatar = lastSender !== 'bot';
+    lastSender = 'bot';
 
-                        // Format bullet lines into proper HTML
-                        const formatted = formatSectionContent(content);
-                        bodyEl.classList.add('streaming-cursor');
-                        await streamSectionText(bodyEl, formatted);
-                        bodyEl.classList.remove('streaming-cursor');
-                        scrollToBottom();
-                    } catch(e) { /* skip malformed events */ }
-                }
+    const pct = Math.min(100, Math.max(0, data.confidence || 0));
+    const col = pct >= 70 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#ef4444';
+    const name = (data.disease || 'Unknown').replace(/___/g, ' — ').replace(/_/g, ' ');
+    const imgURL = data.heatmap_base64 ? `data:image/jpeg;base64,${data.heatmap_base64}` : imgSrc;
+
+    const row = document.createElement('div');
+    row.className = 'bubble-row';
+    row.innerHTML = `
+        ${botAvatar(showAvatar)}
+        <div class="diag-card" style="flex:1;max-width:82%;">
+            <div class="diag-row">
+                <div class="diag-img"><img src="${imgURL}" alt="leaf heatmap"></div>
+                <div class="diag-info">
+                    <div class="diag-label">Diagnosed Disease</div>
+                    <div class="diag-name">${name}</div>
+                    <div class="diag-bar-track">
+                        <div class="diag-bar-fill" id="conf-fill" style="width:0%;background:${col};"></div>
+                    </div>
+                    <span class="diag-pct" style="color:${col};">${pct.toFixed(2)}%</span>
+                </div>
+            </div>
+            <div class="diag-footer"><i class="fa-solid fa-circle-info"></i> Consult a local agronomist for confirmation.</div>
+        </div>`;
+    feed().appendChild(row);
+    scrollBottom();
+
+    setTimeout(() => {
+        const f = document.getElementById('conf-fill');
+        if (f) f.style.width = pct + '%';
+    }, 300);
+}
+
+// ── stream 3 info messages via SSE ────────────────────────────────
+async function streamInfoMessages(disease, confidence) {
+    // We'll collect section content from the stream then present as 3 sequential chat bubbles
+    const sections = { description: '', symptoms: '', cause: '', treatment: '', prevention: '' };
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/disease_info_stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ disease, confidence })
+        });
+        if (!resp.ok) throw new Error('stream failed');
+
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                if (raw === '[DONE]') break;
+                try {
+                    const ev = JSON.parse(raw);
+                    if (sections.hasOwnProperty(ev.section)) sections[ev.section] = ev.content || '';
+                } catch {}
             }
-        } catch(err) {
-            // On stream failure fill all pending sections with fallback
-            const secs = ['description','symptoms','cause','treatment','prevention'];
-            secs.forEach(s => {
-                const el = document.getElementById('body-' + s);
-                if (el && el.querySelector('.section-loading')) {
-                    el.textContent = 'No details available.';
-                }
-            });
         }
-
-        unlockChat();
+    } catch {
+        // fallbacks already handled by backend; sections may be empty strings
     }
 
-    // Format content: convert "• item\n• item" into <ul><li>…</li></ul>
-    function formatSectionContent(text) {
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const hasBullets = lines.some(l => l.startsWith('•') || l.startsWith('-') || l.startsWith('*'));
+    // ── Message 1: About the disease (description + cause) ───────
+    const aboutText = buildAboutText(disease, sections.description, sections.cause);
+    const b1 = addBotBubble();
+    await streamInto(b1, aboutText, 14);
+    await new Promise(r => setTimeout(r, 500));
 
-        if (hasBullets) {
-            const items = lines.map(l => l.replace(/^[•\-\*]\s*/, ''));
-            return '<ul style="margin:0;padding-left:16px;">' + items.map(i => `<li style="margin-bottom:5px;">${i}</li>`).join('') + '</ul>';
-        }
-        return text.replace(/\n/g, '<br>');
+    // ── Message 2: Symptoms ───────────────────────────────────────
+    const sympText = buildSymptomsText(sections.symptoms);
+    const b2 = addBotBubble();
+    await streamInto(b2, sympText, 14);
+    await new Promise(r => setTimeout(r, 500));
+
+    // ── Message 3: Treatment & prevention ────────────────────────
+    const treatText = buildTreatmentText(sections.treatment, sections.prevention);
+    const b3 = addBotBubble();
+    await streamInto(b3, treatText, 14);
+    await new Promise(r => setTimeout(r, 600));
+
+    // ── Unlock chat ───────────────────────────────────────────────
+    unlockChat(disease);
+}
+
+function buildAboutText(disease, desc, cause) {
+    const name = disease.replace(/___/g, ' — ').replace(/_/g, ' ');
+    let out = `🔬 About ${name}\n\n`;
+    if (desc) out += desc.trim();
+    if (cause) out += `\n\nCause: ${cause.trim()}`;
+    return out;
+}
+
+function buildSymptomsText(symptoms) {
+    let out = `🩺 Symptoms\n\n`;
+    if (symptoms) {
+        // normalise bullets
+        const lines = symptoms.split('\n').map(l => l.trim()).filter(Boolean);
+        out += lines.map(l => l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`).join('\n');
+    } else {
+        out += 'Symptoms data not available.';
     }
+    return out;
+}
 
-    // Stream HTML content into an element word by word
-    async function streamSectionText(el, html, speed = 8) {
-        // For plain text streaming, we reveal character by character
-        // For HTML (lists), we reveal item by item
-        if (html.startsWith('<ul')) {
-            el.innerHTML = '';
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            const ul = document.createElement('ul');
-            ul.style.cssText = 'margin:0;padding-left:16px;';
-            el.appendChild(ul);
-            const items = temp.querySelectorAll('li');
-            for (const item of items) {
-                const li = document.createElement('li');
-                li.style.marginBottom = '5px';
-                li.style.opacity = '0';
-                li.style.transition = 'opacity 0.3s ease';
-                ul.appendChild(li);
-                // Type out each list item
-                const text = item.textContent;
-                for (let i = 0; i < text.length; i++) {
-                    li.textContent += text.charAt(i);
-                    if (i === 0) li.style.opacity = '1';
-                    await new Promise(r => setTimeout(r, speed));
-                }
-                await new Promise(r => setTimeout(r, 80));
-                scrollToBottom();
+function buildTreatmentText(treatment, prevention) {
+    let out = `💊 Treatment & Prevention\n\n`;
+    if (treatment) {
+        const lines = treatment.split('\n').map(l => l.trim()).filter(Boolean);
+        out += lines.map(l => l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`).join('\n');
+    }
+    if (prevention) {
+        out += '\n\nPrevention:\n';
+        const lines = prevention.split('\n').map(l => l.trim()).filter(Boolean);
+        out += lines.map(l => l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`).join('\n');
+    }
+    if (!treatment && !prevention) out += 'Treatment data not available.';
+    return out;
+}
+
+// ── unlock chat ────────────────────────────────────────────────────
+function unlockChat(disease) {
+    const bar = document.getElementById('chat-input-bar');
+    const inp = document.getElementById('chat-input');
+    const btn = document.getElementById('send-btn');
+    bar.classList.remove('locked');
+    inp.disabled = false;
+    btn.disabled = false;
+    inp.focus();
+
+    const name = disease.replace(/___/g, ' — ').replace(/_/g, ' ');
+    setTimeout(async () => {
+        const b = addBotBubble();
+        await streamInto(b, `You can now ask me anything about ${name} — treatment, prevention, spread, or management. I'll keep answers focused on this disease.`);
+    }, 300);
+}
+
+// ── chat send ──────────────────────────────────────────────────────
+function handleKey(e) { if (e.key === 'Enter') sendChat(); }
+
+async function sendChat() {
+    const inp = document.getElementById('chat-input');
+    const btn = document.getElementById('send-btn');
+    const text = inp.value.trim();
+    if (!text) return;
+
+    inp.value = '';
+    inp.disabled = true;
+    btn.disabled = true;
+
+    addUserTextBubble(text);
+
+    const diseaseName = state.disease
+        ? state.disease.replace(/___/g, ' - ').replace(/_/g, ' ')
+        : 'the diagnosed disease';
+
+    // System prompt — strict, on-topic only
+    const systemPrompt = `You are Krsi Vaidyah, a plant disease expert in the DharaVeda app. The plant was diagnosed with "${diseaseName}" at ${state.confidence.toFixed(1)}% confidence.
+
+Rules you MUST follow:
+1. Only answer questions directly related to this disease, its symptoms, causes, treatment, prevention, or crop/plant management related to it.
+2. If the user asks anything unrelated to this disease or plant/crop topics, reply with exactly: "I can only help with questions about ${diseaseName} and related crop health topics."
+3. Keep replies short and precise — 2 to 4 sentences maximum. Never pad the answer.
+4. Do not use markdown. Plain text only.
+5. Do not introduce yourself. You are already in a conversation.`;
+
+    if (state.chatHistory.length === 0) {
+        state.chatHistory.push({ role: 'system', content: systemPrompt });
+    }
+    state.chatHistory.push({ role: 'user', content: text });
+
+    // loading
+    const loader = addLoadingBubble();
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/ai_chat_stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: state.chatHistory })
+        });
+
+        loader.remove();
+        lastSender = null;
+        const bubble = addBotBubble();
+
+        if (!resp.ok) throw new Error('failed');
+
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '', reply = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split('\n');
+            buf = lines.pop();
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const token = line.slice(6);
+                if (token === '[DONE]') break;
+                if (token.startsWith('[ERROR]')) { bubble.textContent = 'An error occurred. Please try again.'; break; }
+                reply += token;
+                bubble.textContent = reply;
+                scrollBottom();
             }
-        } else {
-            el.innerHTML = '';
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            const text = temp.innerHTML;
-            // Stream HTML safely by building it
-            let displayed = '';
-            let inTag = false;
-            for (let i = 0; i < text.length; i++) {
-                const ch = text.charAt(i);
-                if (ch === '<') inTag = true;
-                displayed += ch;
-                if (ch === '>') { inTag = false; el.innerHTML = displayed; continue; }
-                if (!inTag) {
-                    el.innerHTML = displayed;
-                    await new Promise(r => setTimeout(r, speed));
-                }
-            }
-            el.innerHTML = displayed;
-        }
-    }
-
-    // ── Unlock chat after diagnosis ───────────────────────────────────────────
-    function unlockChat() {
-        const bar = document.getElementById('chat-input-bar');
-        const input = document.getElementById('chat-input');
-        const btn = document.getElementById('chat-send-btn');
-        bar.classList.remove('locked');
-        input.disabled = false;
-        btn.disabled = false;
-        input.focus();
-
-        // Post-diagnosis bot message
-        setTimeout(async () => {
-            const b = addBotMessage('post');
-            await streamText(b, "Feel free to ask me anything about this disease — treatment, prevention, or next steps! 🌱");
-        }, 500);
-    }
-
-    // ── Chat message handling ─────────────────────────────────────────────────
-    function handleChatEnter(e) {
-        if (e.key === 'Enter') sendChatMessage();
-    }
-
-    async function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        const btn = document.getElementById('chat-send-btn');
-        const text = input.value.trim();
-        if (!text) return;
-
-        input.value = '';
-        input.disabled = true;
-        btn.disabled = true;
-
-        addUserMessage(text);
-
-        // Build context-aware messages
-        const disease = chatState.diseaseData
-            ? (chatState.diseaseData.disease || '').replace(/___/g,' - ').replace(/_/g,' ')
-            : 'unknown disease';
-        const conf = chatState.diseaseData ? chatState.diseaseData.confidence : 0;
-
-        const systemPrompt = `You are Krsi Vaidyah, DharaVeda's expert plant disease assistant. The plant was diagnosed with "${disease}" at ${conf.toFixed(1)}% confidence. Provide helpful, concise answers about this disease. Keep responses under 150 words. Be warm and practical.`;
-
-        if (chatState.chatHistory.length === 0) {
-            chatState.chatHistory.push({ role: 'system', content: systemPrompt });
-        }
-        chatState.chatHistory.push({ role: 'user', content: text });
-
-        // Show loading
-        const loadingBubble = document.createElement('div');
-        loadingBubble.style.cssText = "display:flex;gap:10px;align-items:flex-start;";
-        loadingBubble.innerHTML = `<img src="Pic/loading.gif" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`;
-        document.getElementById('ai-chat-container').appendChild(loadingBubble);
-        scrollToBottom();
-
-        try {
-            const resp = await fetch(`${API_BASE}/api/ai_chat_stream`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: chatState.chatHistory })
-            });
-
-            loadingBubble.remove();
-            lastSender = null;
-            const bubble = addBotMessage('post');
-
-            if (!resp.ok) throw new Error('Chat request failed');
-
-            const reader = resp.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let fullReply = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop();
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-                    const token = line.slice(6);
-                    if (token === '[DONE]') break;
-                    if (token.startsWith('[ERROR]')) { bubble.textContent = token.slice(7).trim() || 'An error occurred.'; break; }
-                    fullReply += token;
-                    bubble.textContent = fullReply;
-                    scrollToBottom();
-                }
-            }
-
-            chatState.chatHistory.push({ role: 'assistant', content: fullReply });
-
-        } catch(err) {
-            loadingBubble.remove();
-            const errBubble = addBotMessage('post');
-            errBubble.textContent = '⚠️ Could not connect. Please try again.';
         }
 
-        input.disabled = false;
-        btn.disabled = false;
-        input.focus();
-        scrollToBottom();
+        state.chatHistory.push({ role: 'assistant', content: reply });
+
+    } catch {
+        loader.remove();
+        const b = addBotBubble();
+        b.textContent = '⚠️ Could not connect. Please try again.';
     }
 
-    // ── Boot ──────────────────────────────────────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-        showGreeting();
-    });
+    inp.disabled = false;
+    btn.disabled = false;
+    inp.focus();
+    scrollBottom();
+}
+
+// ── start ──────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
