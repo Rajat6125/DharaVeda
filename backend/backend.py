@@ -38,6 +38,13 @@ try:
 except Exception as e:
     print(f"Warning: Could not load fertilizer models: {e}")
 
+try:
+    from disease_model import PlantDiseaseClassifier
+    disease_classifier = PlantDiseaseClassifier("image_classification.pth")
+except Exception as e:
+    print(f"Warning: Could not load disease model: {e}")
+    disease_classifier = None
+
 @app.route("/")
 def home():
     return "Crop Recommendation API is running"
@@ -1061,6 +1068,91 @@ def process_daily_crop_alerts_cron():
             
     except Exception as e:
         print("Cron Alert Error:", e)
+
+@app.route("/api/disease_detect", methods=["POST"])
+def detect_disease():
+    if not disease_classifier:
+        return jsonify({"success": False, "error": "Disease model not loaded. Please ensure 'image_classification.pth' is in the backend folder."}), 503
+        
+    try:
+        if "image" not in request.files:
+            return jsonify({"success": False, "error": "No image part in the request"}), 400
+            
+        file = request.files["image"]
+        if file.filename == "":
+            return jsonify({"success": False, "error": "No selected file"}), 400
+            
+        image_bytes = file.read()
+        
+        # 1. Quality Check
+        quality = disease_classifier.check_image_quality(image_bytes)
+        if not quality["valid"]:
+            return jsonify({"success": False, "error": quality["reason"]}), 400
+            
+        # 2. Predict & GradCAM
+        result = disease_classifier.predict_with_gradcam(image_bytes)
+        predicted_class = result["predicted_class"]
+        
+        # 3. AI details
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+        ai_details = ""
+        if openrouter_key:
+            prompt = f"""
+Given the plant disease: {predicted_class}
+Provide a structured response with the following details EXACTLY in this format, do not add markdown (like ```) or extra text around it.
+
+Disease:
+{predicted_class}
+
+Confidence:
+{round(result["confidence"] * 100, 1)}%
+
+Symptoms:
+• [symptom 1]
+• [symptom 2]
+
+Cause:
+[cause]
+
+Severity:
+[severity]
+
+Treatment:
+• [treatment 1]
+• [treatment 2]
+
+Organic Control:
+• [control 1]
+
+Prevention:
+• [prevention 1]
+"""
+            llm_resp = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json={
+                    "model": "meta-llama/llama-3.3-70b-instruct:free",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 300
+                },
+                headers={"Authorization": f"Bearer {openrouter_key}"},
+                timeout=15
+            )
+            if llm_resp.ok:
+                ai_details = llm_resp.json()["choices"][0]["message"]["content"].strip()
+                import re
+                ai_details = re.sub(r'^```[a-zA-Z]*\n', '', ai_details)
+                ai_details = re.sub(r'\n```$', '', ai_details).strip()
+                
+        return jsonify({
+            "success": True,
+            "disease": predicted_class,
+            "confidence": round(result["confidence"] * 100, 2),
+            "top_k": result["top_k"],
+            "heatmap_base64": result["heatmap_base64"],
+            "ai_details": ai_details
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])
 def trigger_update_crop_weather():

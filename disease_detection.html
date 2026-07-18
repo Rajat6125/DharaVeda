@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DharaVeda - Disease Detection</title>
+    <link rel="icon" href="Pic/0Logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --text-primary: #1E2A1F;
+            --text-secondary: #555555;
+            --accent-green: #3B6B3F;
+            --light-green: #E8F5E9;
+            --font-family: 'Outfit', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html, body {
+            height: 100%;
+            height: 100dvh;
+        }
+        body {
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            background-color: #f4f4f4;
+            overflow: hidden;
+        }
+        body::before {
+            content:'';
+            position:fixed; top:0; left:0;
+            width:100%; height:100%;
+            background-image: url('Pic/crop_rmd.jpg'); /* Using same background as crop recommend for consistency */
+            background-size:cover; background-position:center;
+            z-index:-1;
+        }
+        .app-container {
+            width:100%; max-width:480px;
+            height: 100vh;
+            height: 100dvh;
+            background: rgba(47, 27, 27, 0.34);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position:relative; display:flex; flex-direction:column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .top-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 20px;
+            background: rgba(255,255,255,0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            z-index:10; flex-shrink: 0; position: sticky; top: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-bottom-left-radius:20px; border-bottom-right-radius:20px;
+        }
+        .header-left { display:flex; align-items:center; gap:12px; }
+        .header-info h2 { font-size:18px; font-weight:700; color:var(--accent-green); }
+        .header-info p { font-size:12px; color:var(--text-secondary); }
+        .header-right { display:flex; gap:16px; }
+        .header-btn { background:none; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; }
+        
+        .main-content {
+            flex: 1; min-height: 0; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
+        }
+        .main-content::-webkit-scrollbar { width:6px; }
+        .main-content::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
+        
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        
+        .form-card {
+            background:rgba(240,248,241,0.95); border-radius:20px; padding:20px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.5);
+            animation:fadeIn 0.3s ease; width:100%; text-align: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(59,107,63,0.3);
+            border-radius: 16px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: var(--accent-green);
+            background: #f8fff8;
+        }
+        .upload-area i {
+            font-size: 40px;
+            color: var(--accent-green);
+            margin-bottom: 12px;
+        }
+        .upload-area p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        #image-preview {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 12px;
+            display: none;
+            margin: 15px 0;
+            background: #000;
+        }
+        
+        .submit-btn {
+            width:100%; background:var(--accent-green); color:white; border:none;
+            padding:12px; border-radius:12px; font-size:14px; font-weight:600;
+            font-family:var(--font-family); cursor:pointer;
+            display:flex; justify-content:center; align-items:center; gap:8px; transition:background 0.2s;
+        }
+        .submit-btn:hover { background:#2D5230; }
+        .submit-btn:disabled { background:#000000; color:#4ade80; cursor:not-allowed; }
+        
+        /* Result card */
+        .result-card {
+            background: white; border-radius: 16px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); animation: fadeIn 0.4s ease;
+            display: none;
+        }
+        .heatmap-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .ai-details-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+        .disease-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #c62828;
+            margin-bottom: 5px;
+        }
+        .confidence-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .reupload-btn {
+            margin-top: 15px;
+            background: #f1f8e9;
+            color: var(--accent-green);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-header">
+        <div class="header-left">
+            <button class="header-btn" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="Pic/Disease_Detection.png" alt="Disease Detection" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                <div class="header-info">
+                    <h2>Disease Check</h2>
+                    <p>AI Plant Disease Detection</p>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="form-card" id="upload-card">
+            <h3 style="color: var(--accent-green); margin-bottom: 8px;">Upload Leaf Image</h3>
+            <p style="font-size: 12px; color: var(--text-secondary);">For best results, upload a clear, well-lit image of a single leaf.</p>
+            
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p>Tap to upload an image</p>
+            </div>
+            
+            <img id="image-preview" src="" alt="Preview">
+            
+            <button class="submit-btn" id="submit-btn" onclick="submitImage()" style="display: none;">
+                <i class="fa-solid fa-magnifying-glass"></i> Analyze Disease
+            </button>
+        </div>
+        
+        <div class="result-card" id="result-card">
+            <!-- Dynamic content will go here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : 'https://dharaveda.onrender.com';
+
+    let selectedFile = null;
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('image-preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                document.querySelector('.upload-area').style.display = 'none';
+                document.getElementById('submit-btn').style.display = 'flex';
+                
+                // Hide result card if showing previous result
+                document.getElementById('result-card').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function submitImage() {
+        if (!selectedFile) {
+            alert('Please select an image first.');
+            return;
+        }
+        
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<img src="Pic/loading.gif" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"> Analyzing...';
+        
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        
+        try {
+            const response = await fetch(\`\${API_BASE}/api/disease_detect\`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            btn.style.display = 'none'; // hide button after submit
+            
+            const resultCard = document.getElementById('result-card');
+            
+            if (result.success) {
+                const isHealthy = result.disease.toLowerCase().includes('healthy');
+                const titleColor = isHealthy ? '#3b6b3f' : '#c62828';
+                const formattedDisease = result.disease.replace(/___/g, ' - ').replace(/_/g, ' ');
+                
+                resultCard.innerHTML = \`
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                        <i class="fa-solid \${isHealthy ? 'fa-check-circle' : 'fa-triangle-exclamation'}" style="color: \${titleColor}; font-size: 24px;"></i>
+                        <h2 class="disease-title" style="color: \${titleColor}; margin: 0; text-align: center;">\${formattedDisease}</h2>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <span style="font-size: 13px; font-weight: 600; color: #555;">Confidence: \${result.confidence}%</span>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--accent-green);">AI Heatmap</h4>
+                    <p style="font-size: 11px; color: #666; margin-bottom: 8px;">The red areas highlight where the AI detected the disease symptoms.</p>
+                    <img src="data:image/jpeg;base64,\${result.heatmap_base64}" class="heatmap-img" alt="Heatmap">
+                    
+                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--accent-green); margin-top: 15px;">Detailed Analysis</h4>
+                    <div class="ai-details-box">
+                        \${formatAIDetails(result.ai_details)}
+                    </div>
+                    
+                    <button class="reupload-btn" onclick="document.getElementById('file-input').click()">
+                        <i class="fa-solid fa-camera"></i> Scan Another Leaf
+                    </button>
+                \`;
+            } else {
+                resultCard.innerHTML = \`
+                    <div style="text-align: center; padding: 10px;">
+                        <i class="fa-solid fa-circle-xmark" style="color: #ef5350; font-size: 40px; margin-bottom: 12px;"></i>
+                        <h3 style="color: #c62828; margin-bottom: 8px;">Analysis Failed</h3>
+                        <p style="font-size: 14px; color: #666;">\${result.error}</p>
+                        <button class="reupload-btn" onclick="document.getElementById('file-input').click()" style="margin-top: 20px;">
+                            <i class="fa-solid fa-arrow-rotate-right"></i> Try Again
+                        </button>
+                    </div>
+                \`;
+            }
+            
+            resultCard.style.display = 'block';
+            
+            // Scroll down slightly to show result
+            setTimeout(() => {
+                document.querySelector('.main-content').scrollBy({ top: 400, behavior: 'smooth' });
+            }, 100);
+            
+        } catch (error) {
+            alert('Failed to connect to the server.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze Disease';
+        }
+    }
+    
+    function formatAIDetails(text) {
+        if (!text) return 'No detailed analysis available.';
+        
+        let html = text.replace(/Disease:/g, '<strong>Disease:</strong>');
+        html = html.replace(/Confidence:/g, '<strong>Confidence:</strong>');
+        html = html.replace(/Symptoms:/g, '<strong>Symptoms:</strong><br>');
+        html = html.replace(/Cause:/g, '<strong>Cause:</strong><br>');
+        html = html.replace(/Severity:/g, '<strong>Severity:</strong>');
+        html = html.replace(/Treatment:/g, '<strong>Treatment:</strong><br>');
+        html = html.replace(/Organic Control:/g, '<strong>Organic Control:</strong><br>');
+        html = html.replace(/Prevention:/g, '<strong>Prevention:</strong><br>');
+        
+        return html;
+    }
+</script>
+</body>
+</html>
