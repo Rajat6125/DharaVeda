@@ -348,10 +348,16 @@
         formData.append('image', selectedFile);
 
         try {
+            const controller = new AbortController();
+            const fetchTimeout = setTimeout(() => controller.abort(), 55000); // 55s hard timeout
+
             const response = await fetch(`${API_BASE}/api/disease_detect`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                signal: controller.signal
             });
+
+            clearTimeout(fetchTimeout);
 
             clearTimeout(slowHintTimer);
             overlay.classList.remove('visible');
@@ -398,12 +404,10 @@
         } catch (err) {
             clearTimeout(slowHintTimer);
             overlay.classList.remove('visible');
-            const isTimeout = err.name === 'TypeError' || err.message.includes('fetch');
-            showError(
-                isTimeout
-                    ? 'Could not reach the server. It may still be waking up — please wait a moment and try again.'
-                    : `Unexpected error: ${err.message}`
-            );
+            const msg = err.name === 'AbortError'
+                ? 'Request timed out. The server is overloaded — please try again in a moment.'
+                : 'Could not reach the server. Please check your connection and try again.';
+            showError(msg);
         }
     }
 
