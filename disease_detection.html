@@ -167,6 +167,40 @@
             cursor: pointer;
             width: 100%;
         }
+        .loading-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 16px;
+            margin-top: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease;
+        }
+        .loading-overlay.visible { display: flex; }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 4px solid #e8f5e9;
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; color: var(--text-secondary); font-weight: 500; text-align: center; }
+        .loading-subtext { font-size: 12px; color: #aaa; text-align: center; }
+        .error-card {
+            display: none;
+            background: #fff5f5;
+            border: 1px solid #ffd0d0;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .error-card.visible { display: block; }
     </style>
 </head>
 <body>
@@ -205,6 +239,23 @@
             </button>
         </div>
         
+        <!-- Loading state -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Analyzing your leaf image...</div>
+            <div class="loading-subtext" id="loading-subtext">Connecting to AI model</div>
+        </div>
+
+        <!-- Error state -->
+        <div class="error-card" id="error-card">
+            <i class="fa-solid fa-circle-xmark" style="color: #ef5350; font-size: 36px; margin-bottom: 12px;"></i>
+            <h3 style="color: #c62828; margin-bottom: 8px; font-size: 16px;">Analysis Failed</h3>
+            <p id="error-msg" style="font-size: 13px; color: #666; margin-bottom: 16px;"></p>
+            <button class="reupload-btn" onclick="resetUpload()">
+                <i class="fa-solid fa-arrow-rotate-right"></i> Try Again
+            </button>
+        </div>
+
         <div class="result-card" id="result-card">
             <!-- Dynamic content will go here -->
         </div>
@@ -220,21 +271,54 @@
 
     function previewImage(event) {
         const file = event.target.files[0];
-        if (file) {
-            selectedFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('image-preview');
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                document.querySelector('.upload-area').style.display = 'none';
-                document.getElementById('submit-btn').style.display = 'flex';
-                
-                // Hide result card if showing previous result
-                document.getElementById('result-card').style.display = 'none';
-            }
-            reader.readAsDataURL(file);
-        }
+        if (!file) return;
+
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('image-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.querySelector('.upload-area').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'flex';
+
+            // Hide previous results/errors
+            document.getElementById('result-card').style.display = 'none';
+            document.getElementById('error-card').classList.remove('visible');
+            document.getElementById('loading-overlay').classList.remove('visible');
+
+            // Automatically analyze
+            submitImage();
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function resetUpload() {
+        selectedFile = null;
+        document.getElementById('image-preview').style.display = 'none';
+        document.getElementById('image-preview').src = '';
+        document.querySelector('.upload-area').style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('submit-btn').innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze Disease';
+        document.getElementById('result-card').style.display = 'none';
+        document.getElementById('error-card').classList.remove('visible');
+        document.getElementById('loading-overlay').classList.remove('visible');
+    }
+
+    function showError(message) {
+        document.getElementById('loading-overlay').classList.remove('visible');
+        document.getElementById('error-msg').textContent = message;
+        document.getElementById('error-card').classList.add('visible');
+        // Re-show the submit button so user can retry without re-uploading
+        const btn = document.getElementById('submit-btn');
+        btn.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze Disease';
+        setTimeout(() => {
+            document.querySelector('.main-content').scrollBy({ top: 300, behavior: 'smooth' });
+        }, 100);
     }
 
     async function submitImage() {
@@ -242,91 +326,98 @@
             alert('Please select an image first.');
             return;
         }
-        
+
         const btn = document.getElementById('submit-btn');
         btn.disabled = true;
-        btn.innerHTML = '<img src="Pic/loading.gif" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"> Analyzing...';
-        
+        btn.style.display = 'none';
+
+        document.getElementById('result-card').style.display = 'none';
+        document.getElementById('error-card').classList.remove('visible');
+
+        // Show spinner
+        const overlay = document.getElementById('loading-overlay');
+        overlay.classList.add('visible');
+
+        // Update subtext after a few seconds to hint at cold start
+        const subtextEl = document.getElementById('loading-subtext');
+        const slowHintTimer = setTimeout(() => {
+            subtextEl.textContent = 'Server is waking up, this may take ~30s…';
+        }, 6000);
+
         const formData = new FormData();
         formData.append('image', selectedFile);
-        
+
         try {
-            const response = await fetch(\`\${API_BASE}/api/disease_detect\`, {
+            const response = await fetch(`${API_BASE}/api/disease_detect`, {
                 method: 'POST',
                 body: formData
             });
-            
+
+            clearTimeout(slowHintTimer);
+            overlay.classList.remove('visible');
+
             const result = await response.json();
-            btn.style.display = 'none'; // hide button after submit
-            
-            const resultCard = document.getElementById('result-card');
-            
-            if (result.success) {
-                const isHealthy = result.disease.toLowerCase().includes('healthy');
-                const titleColor = isHealthy ? '#3b6b3f' : '#c62828';
-                const formattedDisease = result.disease.replace(/___/g, ' - ').replace(/_/g, ' ');
-                
-                resultCard.innerHTML = \`
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                        <i class="fa-solid \${isHealthy ? 'fa-check-circle' : 'fa-triangle-exclamation'}" style="color: \${titleColor}; font-size: 24px;"></i>
-                        <h2 class="disease-title" style="color: \${titleColor}; margin: 0; text-align: center;">\${formattedDisease}</h2>
-                    </div>
-                    <div style="text-align: center; margin-bottom: 16px;">
-                        <span style="font-size: 13px; font-weight: 600; color: #555;">Confidence: \${result.confidence}%</span>
-                    </div>
-                    
-                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--accent-green);">AI Heatmap</h4>
-                    <p style="font-size: 11px; color: #666; margin-bottom: 8px;">The red areas highlight where the AI detected the disease symptoms.</p>
-                    <img src="data:image/jpeg;base64,\${result.heatmap_base64}" class="heatmap-img" alt="Heatmap">
-                    
-                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--accent-green); margin-top: 15px;">Detailed Analysis</h4>
-                    <div class="ai-details-box">
-                        \${formatAIDetails(result.ai_details)}
-                    </div>
-                    
-                    <button class="reupload-btn" onclick="document.getElementById('file-input').click()">
-                        <i class="fa-solid fa-camera"></i> Scan Another Leaf
-                    </button>
-                \`;
-            } else {
-                resultCard.innerHTML = \`
-                    <div style="text-align: center; padding: 10px;">
-                        <i class="fa-solid fa-circle-xmark" style="color: #ef5350; font-size: 40px; margin-bottom: 12px;"></i>
-                        <h3 style="color: #c62828; margin-bottom: 8px;">Analysis Failed</h3>
-                        <p style="font-size: 14px; color: #666;">\${result.error}</p>
-                        <button class="reupload-btn" onclick="document.getElementById('file-input').click()" style="margin-top: 20px;">
-                            <i class="fa-solid fa-arrow-rotate-right"></i> Try Again
-                        </button>
-                    </div>
-                \`;
+
+            if (!response.ok || !result.success) {
+                showError(result.error || `Server error (${response.status}). Please try again.`);
+                return;
             }
-            
+
+            // ── Success ──────────────────────────────────────────────
+            const isHealthy = result.disease.toLowerCase().includes('healthy');
+            const titleColor = isHealthy ? '#3b6b3f' : '#c62828';
+            const formattedDisease = result.disease.replace(/___/g, ' — ').replace(/_/g, ' ');
+
+            const resultCard = document.getElementById('result-card');
+            resultCard.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+                    <i class="fa-solid ${isHealthy ? 'fa-check-circle' : 'fa-triangle-exclamation'}" style="color:${titleColor};font-size:24px;"></i>
+                    <h2 class="disease-title" style="color:${titleColor};margin:0;text-align:center;">${formattedDisease}</h2>
+                </div>
+                <div style="text-align:center;margin-bottom:16px;">
+                    <span style="font-size:13px;font-weight:600;color:#555;">Confidence: ${result.confidence}%</span>
+                </div>
+
+                <h4 style="margin-bottom:8px;font-size:14px;color:var(--accent-green);">AI Heatmap</h4>
+                <p style="font-size:11px;color:#666;margin-bottom:8px;">Red areas highlight where the AI detected disease symptoms.</p>
+                <img src="data:image/jpeg;base64,${result.heatmap_base64}" class="heatmap-img" alt="GradCAM Heatmap">
+
+                <h4 style="margin-bottom:8px;font-size:14px;color:var(--accent-green);margin-top:15px;">Detailed Analysis</h4>
+                <div class="ai-details-box">${formatAIDetails(result.ai_details)}</div>
+
+                <button class="reupload-btn" onclick="document.getElementById('file-input').click()">
+                    <i class="fa-solid fa-camera"></i> Scan Another Leaf
+                </button>
+            `;
             resultCard.style.display = 'block';
-            
-            // Scroll down slightly to show result
+
             setTimeout(() => {
                 document.querySelector('.main-content').scrollBy({ top: 400, behavior: 'smooth' });
             }, 100);
-            
-        } catch (error) {
-            alert('Failed to connect to the server.');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyze Disease';
+
+        } catch (err) {
+            clearTimeout(slowHintTimer);
+            overlay.classList.remove('visible');
+            const isTimeout = err.name === 'TypeError' || err.message.includes('fetch');
+            showError(
+                isTimeout
+                    ? 'Could not reach the server. It may still be waking up — please wait a moment and try again.'
+                    : `Unexpected error: ${err.message}`
+            );
         }
     }
-    
+
     function formatAIDetails(text) {
         if (!text) return 'No detailed analysis available.';
-        
-        let html = text.replace(/Disease:/g, '<strong>Disease:</strong>');
-        html = html.replace(/Confidence:/g, '<strong>Confidence:</strong>');
-        html = html.replace(/Symptoms:/g, '<strong>Symptoms:</strong><br>');
-        html = html.replace(/Cause:/g, '<strong>Cause:</strong><br>');
-        html = html.replace(/Severity:/g, '<strong>Severity:</strong>');
-        html = html.replace(/Treatment:/g, '<strong>Treatment:</strong><br>');
-        html = html.replace(/Organic Control:/g, '<strong>Organic Control:</strong><br>');
-        html = html.replace(/Prevention:/g, '<strong>Prevention:</strong><br>');
-        
+        let html = text
+            .replace(/Disease:/g, '<strong>Disease:</strong>')
+            .replace(/Confidence:/g, '<strong>Confidence:</strong>')
+            .replace(/Symptoms:/g, '<strong>Symptoms:</strong><br>')
+            .replace(/Cause:/g, '<strong>Cause:</strong><br>')
+            .replace(/Severity:/g, '<strong>Severity:</strong>')
+            .replace(/Treatment:/g, '<strong>Treatment:</strong><br>')
+            .replace(/Organic Control:/g, '<strong>Organic Control:</strong><br>')
+            .replace(/Prevention:/g, '<strong>Prevention:</strong><br>');
         return html;
     }
 </script>
