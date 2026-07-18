@@ -1104,6 +1104,38 @@ def detect_disease():
         # 2. Predict & GradCAM
         result = disease_classifier.predict_with_gradcam(image_bytes)
         predicted_class = result["predicted_class"]
+        confidence = result["confidence"]
+
+        # 3. Non-plant / irrelevant image check
+        # If top-1 confidence is very low AND the class name looks like a plant disease,
+        # the image is likely not a leaf at all.
+        # We do a quick heuristic: if confidence < 0.10 (10%) the model has no idea — reject.
+        if confidence < 0.10:
+            return jsonify({
+                "success": False,
+                "error": "This doesn't look like a plant or leaf image. Please upload a clear photo of a leaf to detect disease."
+            }), 400
+
+        # Additional check: use a simple green/vegetation pixel ratio
+        try:
+            from PIL import Image as PILImage
+            import io as _io, numpy as _np
+            pil_img = PILImage.open(_io.BytesIO(image_bytes)).convert("RGB").resize((100, 100))
+            arr = _np.array(pil_img).astype(float)
+            r, g, b = arr[:,:,0], arr[:,:,1], arr[:,:,2]
+            # Green dominance: pixels where green > red and green > blue
+            green_pixels = _np.sum((g > r * 0.8) & (g > b * 0.8))
+            green_ratio = green_pixels / (100 * 100)
+            # Brown/yellow pixels (diseased leaves) also count as plant
+            warm_pixels = _np.sum((r > 100) & (g > 60) & (b < 100) & (r > b))
+            warm_ratio = warm_pixels / (100 * 100)
+            if green_ratio + warm_ratio < 0.08:
+                return jsonify({
+                    "success": False,
+                    "error": "No plant or leaf detected in this image. Please upload a clear photo of a diseased or healthy leaf."
+                }), 400
+        except Exception:
+            pass  # if pixel check fails, continue with model result
         
         # 3. AI details
         openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
