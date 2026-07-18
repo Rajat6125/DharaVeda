@@ -625,7 +625,7 @@
         <div class="stat-item">
             <i class="fa-solid fa-seedling" style="color: #4CAF50;"></i>
             <div class="stat-info">
-                <span class="val">3</span>
+                <span class="val" id="stat-crops">--</span>
                 <span class="lbl">Crops</span>
             </div>
         </div>
@@ -633,7 +633,7 @@
         <div class="stat-item">
             <i class="fa-solid fa-droplet" style="color: #2196F3;"></i>
             <div class="stat-info">
-                <span class="val">Good</span>
+                <span class="val" id="stat-moisture">--</span>
                 <span class="lbl">Soil Moisture</span>
             </div>
         </div>
@@ -641,16 +641,16 @@
         <div class="stat-item">
             <i class="fa-solid fa-cloud-sun" style="color: #FFC107;"></i>
             <div class="stat-info">
-                <span class="val">Favorable</span>
+                <span class="val" id="stat-weather">--</span>
                 <span class="lbl">Weather</span>
             </div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-            <i class="fa-solid fa-arrow-trend-up" style="color: #4CAF50;"></i>
+            <i class="fa-solid fa-arrow-trend-up" style="color: #4CAF50;" id="stat-yield-icon"></i>
             <div class="stat-info">
-                <span class="val">+12%</span>
-                <span class="lbl">Yield Trend</span>
+                <span class="val" id="stat-yield">--</span>
+                <span class="lbl">Health Score</span>
             </div>
         </div>
     </div>
@@ -945,6 +945,23 @@
                     const iconClass = iconMap[weatherMain] || 'fa-cloud-sun';
                     const iconEl = document.getElementById('weather-icon');
                     iconEl.className = `fa-solid ${iconClass} weather-icon`;
+
+                    // Update stats row weather pill
+                    const weatherStatEl = document.getElementById('stat-weather');
+                    if (weatherStatEl) {
+                        const goodWeather = ['Clear', 'Clouds'];
+                        const badWeather  = ['Rain', 'Drizzle', 'Thunderstorm', 'Snow'];
+                        if (goodWeather.includes(weatherMain)) {
+                            weatherStatEl.textContent = 'Favorable';
+                            weatherStatEl.style.color = '#4CAF50';
+                        } else if (badWeather.includes(weatherMain)) {
+                            weatherStatEl.textContent = weatherMain;
+                            weatherStatEl.style.color = '#2196F3';
+                        } else {
+                            weatherStatEl.textContent = weatherMain;
+                            weatherStatEl.style.color = '';
+                        }
+                    }
                 })
                 .catch(err => {
                     console.error("Error fetching weather:", err);
@@ -994,32 +1011,39 @@
             const dataEl    = document.getElementById('tracker-data');
 
             try {
-                // Resolve email from token
+                // Resolve email_phone — same priority order as dashboard.html
                 let email_phone = '';
                 if (token) {
                     try {
                         const payload = JSON.parse(atob(token.split('.')[1]));
-                        email_phone = payload.email_phone || '';
-                    } catch(e) {}
+                        if (payload && payload.email_phone) {
+                            email_phone = payload.email_phone;
+                        }
+                    } catch(e) { console.error('Token decode error:', e); }
                 }
+                // Fallback: dharaveda_user localStorage
                 if (!email_phone && userDataStr) {
                     try {
                         const ud = JSON.parse(userDataStr);
                         email_phone = ud.email_phone || ud.email || '';
                     } catch(e) {}
                 }
-                if (!email_phone) { showNoCrop(); return; }
+                if (!email_phone) {
+                    console.warn('Crop tracker: no email_phone found');
+                    showNoCrop(); return;
+                }
 
                 const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
 
-                // 1. Get farmer ID
+                // 1. Get farmer ID — use select=* and multi-variant lookup to match dashboard.html exactly
                 const userRes = await fetch(
-                    `${SUPABASE_URL}/User_database?select=id&Email_Phone=eq.${encodeURIComponent(email_phone)}`,
+                    `${SUPABASE_URL}/User_database?select=*&Email_Phone=eq.${encodeURIComponent(email_phone)}`,
                     { headers }
                 );
                 const users = await userRes.json();
                 if (!users || users.length === 0) { showNoCrop(); return; }
-                const farmer_id = users[0].id;
+                const u = users[0];
+                const farmer_id = u.id || u.ID || u.Id || u.farmer_id || u.Farmer_id;
 
                 // 2. Get latest crop
                 const cropRes = await fetch(
@@ -1031,6 +1055,19 @@
 
                 const crop = crops[0];
                 const cropId = crop.crop_id;
+
+                // 2b. Get total crop count for this farmer (for stats row)
+                let cropCount = 1;
+                try {
+                    const countRes = await fetch(
+                        `${SUPABASE_URL}/crop_system?select=crop_id&farmer_id=eq.${farmer_id}`,
+                        { headers: { ...headers, 'Prefer': 'count=exact' } }
+                    );
+                    const countData = await countRes.json();
+                    if (Array.isArray(countData)) cropCount = countData.length;
+                } catch(e) {}
+                const statCropsEl = document.getElementById('stat-crops');
+                if (statCropsEl) statCropsEl.textContent = cropCount;
 
                 // 3. Compute growth progress
                 let progress = crop.growth_progress || 0;
@@ -1048,6 +1085,7 @@
                 // 4. Latest condition snapshot for water / health
                 let moistureStatus = 'Good';
                 let healthStatus   = 'Healthy';
+                let healthScore    = 80;
                 try {
                     const snapRes = await fetch(
                         `${SUPABASE_URL}/crop_condition_snapshot?select=soil_moisture,health_score&crop_id=eq.${cropId}&order=date.desc&limit=1`,
@@ -1061,13 +1099,29 @@
                         else if (moisture >= 30) moistureStatus = 'Good';
                         else moistureStatus = 'Low';
 
-                        const health = (s.health_score <= 10) ? s.health_score * 10 : s.health_score;
-                        if (health >= 80)      healthStatus = 'Healthy';
-                        else if (health >= 60) healthStatus = 'Good';
-                        else if (health >= 40) healthStatus = 'Fair';
-                        else                   healthStatus = 'Poor';
+                        healthScore = (s.health_score <= 10) ? s.health_score * 10 : (s.health_score || 80);
+                        if (healthScore >= 80)      healthStatus = 'Healthy';
+                        else if (healthScore >= 60) healthStatus = 'Good';
+                        else if (healthScore >= 40) healthStatus = 'Fair';
+                        else                        healthStatus = 'Poor';
                     }
                 } catch(e) {}
+
+                // Update stats row — Soil Moisture
+                const statMoistureEl = document.getElementById('stat-moisture');
+                if (statMoistureEl) {
+                    statMoistureEl.textContent = moistureStatus;
+                    statMoistureEl.style.color = moistureStatus === 'Low' ? '#F44336' : moistureStatus === 'High' ? '#2196F3' : '#4CAF50';
+                }
+                // Update stats row — Health Score (replaces Yield Trend with real data)
+                const statYieldEl   = document.getElementById('stat-yield');
+                const statYieldIcon = document.getElementById('stat-yield-icon');
+                if (statYieldEl) {
+                    statYieldEl.textContent = healthScore + '/100';
+                    if (healthScore >= 80)      { statYieldEl.style.color = '#4CAF50'; if (statYieldIcon) statYieldIcon.style.color = '#4CAF50'; }
+                    else if (healthScore >= 60) { statYieldEl.style.color = '#FF9800'; if (statYieldIcon) { statYieldIcon.className = 'fa-solid fa-arrow-trend-up'; statYieldIcon.style.color = '#FF9800'; } }
+                    else                        { statYieldEl.style.color = '#F44336'; if (statYieldIcon) { statYieldIcon.className = 'fa-solid fa-arrow-trend-down'; statYieldIcon.style.color = '#F44336'; } }
+                }
 
                 // 5. Latest alert as next action
                 let nextAction = 'Check crop growth and log observations.';
@@ -1119,6 +1173,13 @@
                 loadingEl.style.display = 'none';
                 noCropEl.style.display  = 'block';
                 dataEl.style.display    = 'none';
+                // Stats row fallback when no crop is registered
+                const sc = document.getElementById('stat-crops');
+                const sm = document.getElementById('stat-moisture');
+                const sy = document.getElementById('stat-yield');
+                if (sc) sc.textContent = '0';
+                if (sm) sm.textContent = '--';
+                if (sy) sy.textContent = '--';
             }
         }
 
