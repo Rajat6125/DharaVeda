@@ -514,15 +514,12 @@
             const formattedDisease = result.disease.replace(/___/g, ' — ').replace(/_/g, ' ');
             
             const aiDetails = result.ai_details || '';
-            const causeDesc = extractSection(aiDetails, 'Cause') || 'A plant condition detected based on visible leaf symptoms.';
+            const causeDesc = extractSection(aiDetails, 'Cause');
             const symptomsText = extractSection(aiDetails, 'Symptoms');
             const treatmentText = extractSection(aiDetails, 'Treatment');
             const organicControlText = extractSection(aiDetails, 'Organic Control');
             const preventionText = extractSection(aiDetails, 'Prevention');
 
-            let combinedTreatment = formatList(treatmentText);
-            if (organicControlText) combinedTreatment += '<br><strong>Organic Options:</strong><br>' + formatList(organicControlText);
-            
             chatState.diseaseData = {
                 name: formattedDisease,
                 isHealthy: isHealthy,
@@ -537,13 +534,13 @@
                 </div>
                 <p class="diag-sub">Based on the provided leaf image, our AI model diagnosed the condition.</p>
                 
-                <div class="diag-grid">
-                    <div class="diag-img-box">
-                        <img src="${result.heatmap_base64 ? 'data:image/jpeg;base64,' + result.heatmap_base64 : previewSrc}" alt="Diagnosis Image">
+                <div class="diag-grid" style="display: flex; flex-direction: row; gap: 20px; align-items: center; margin-bottom: 20px;">
+                    <div class="diag-img-box" style="flex: 0 0 120px;">
+                        <img src="${result.heatmap_base64 ? 'data:image/jpeg;base64,' + result.heatmap_base64 : previewSrc}" style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="Diagnosis Image">
                     </div>
-                    <div class="diag-info">
+                    <div class="diag-info" style="flex: 1;">
                         <p class="diag-label">Diagnosed Condition</p>
-                        <h3 class="diag-title">${formattedDisease}</h3>
+                        <h3 class="diag-title" style="font-size: 18px;">${formattedDisease}</h3>
                         
                         <div class="diag-conf-row">
                             <div class="diag-conf-bar">
@@ -551,38 +548,10 @@
                             </div>
                             <span class="diag-conf-text">${result.confidence}%</span>
                         </div>
-                        
-                        <p class="diag-desc">${causeDesc}</p>
                     </div>
                 </div>
                 
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div>
-                        <div class="diag-section-header">
-                            <div class="diag-icon-box"><i class="fa-solid fa-magnifying-glass"></i></div>
-                            <h4 class="diag-section-title">Symptoms</h4>
-                        </div>
-                        <div class="diag-list">
-                            ${formatList(symptomsText)}
-                        </div>
-                    </div>
-                    
-                    ${!isHealthy ? `
-                    <div>
-                        <div class="diag-section-header">
-                            <div class="diag-icon-box"><i class="fa-solid fa-shield-halved"></i></div>
-                            <h4 class="diag-section-title">Treatment & Control</h4>
-                        </div>
-                        <div class="diag-list">
-                            ${combinedTreatment}
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
                 <div class="diag-footer">
                     <i class="fa-solid fa-circle-info"></i>
                     <span>Diagnosis is AI-generated and may vary based on real-time field conditions.</span>
@@ -596,15 +565,22 @@
 
             // Setup Chat Context
             const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).
-Symptoms: ${symptomsText}
-Cause: ${causeDesc}
-Treatment: ${treatmentText}
-Prevention: ${preventionText}
 Answer any further questions the farmer has about this disease, its treatment, or general plant care. Keep answers concise, helpful, and friendly. Use plain text formatting, bullet points are okay.`;
             
             chatState.history = [
                 { role: 'system', content: systemPrompt }
             ];
+
+            let botExplanation = `The leaf appears to be affected by **${formattedDisease}**.\n\n`;
+            if (causeDesc) botExplanation += `**Cause:** ${causeDesc}\n\n`;
+            if (symptomsText) botExplanation += `**Symptoms:**\n${symptomsText.split('\n').map(s => s.trim().startsWith('•') ? s : '• ' + s).join('\n')}\n\n`;
+            if (treatmentText) botExplanation += `**Treatment:**\n${treatmentText.split('\n').map(s => s.trim().startsWith('•') ? s : '• ' + s).join('\n')}\n\n`;
+            if (organicControlText) botExplanation += `**Organic Control:**\n${organicControlText.split('\n').map(s => s.trim().startsWith('•') ? s : '• ' + s).join('\n')}\n\n`;
+            
+            chatState.history.push({ role: 'assistant', content: botExplanation });
+            
+            // Bot streams the explanation
+            await simulateAIStream(botExplanation);
 
             // Bot follows up
             setTimeout(() => {
@@ -658,6 +634,75 @@ Answer any further questions the farmer has about this disease, its treatment, o
         return html;
     }
 
+    async function simulateAIStream(text) {
+        chatState.isStreaming = true;
+        const sendBtn = document.getElementById('chat-send-btn');
+        if (sendBtn) sendBtn.disabled = true;
+
+        const containerId = 'ai-chat-container';
+        const firstMsgDiv = document.createElement('div');
+        firstMsgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+        firstMsgDiv.innerHTML = `
+            <img src="Pic/Disease_Detection.png" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
+            <div class="msg-bubble msg-bot" style="background: white; padding: 10px 14px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
+        `;
+        document.getElementById(containerId).appendChild(firstMsgDiv);
+        scrollToBottom();
+        
+        let activeBubble = firstMsgDiv.querySelector('.msg-bubble');
+        let tokenBuffer = '';
+        
+        const tokens = text.match(/(\S+\s*)/g) || [];
+        
+        for (const token of tokens) {
+            tokenBuffer += token;
+            
+            const hasSentenceEnd = /[.!?\n]/.test(tokenBuffer);
+            const isLongEnough = tokenBuffer.trim().length >= 60;
+
+            if (hasSentenceEnd && isLongEnough) {
+                const breakMatch = tokenBuffer.match(/^([\s\S]*[.!?\n])\s*/);
+                if (breakMatch) {
+                    const chunkText = renderMarkdown(breakMatch[1]);
+                    const remainder = tokenBuffer.substring(breakMatch[0].length);
+
+                    activeBubble.innerHTML = chunkText;
+                    scrollToBottom();
+
+                    await new Promise(r => setTimeout(r, 200));
+
+                    const nextDiv = document.createElement('div');
+                    nextDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+                    nextDiv.innerHTML = `
+                        <div style="width: 32px; height: 32px; flex-shrink: 0;"></div>
+                        <div class="msg-bubble msg-bot" style="background: white; padding: 10px 14px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
+                    `;
+                    document.getElementById(containerId).appendChild(nextDiv);
+                    scrollToBottom();
+                    
+                    activeBubble = nextDiv.querySelector('.msg-bubble');
+                    tokenBuffer = remainder;
+                } else {
+                    activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                }
+            } else {
+                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                if (token.trim()) scrollToBottom();
+            }
+            await new Promise(r => setTimeout(r, 20));
+        }
+        
+        if (tokenBuffer.trim()) {
+            activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+            scrollToBottom();
+        } else if (!activeBubble.innerHTML.trim()) {
+            activeBubble.closest('div').remove();
+        }
+        
+        chatState.isStreaming = false;
+        if (sendBtn) sendBtn.disabled = false;
+    }
+
     async function streamAIResponse(messages) {
         chatState.isStreaming = true;
         const sendBtn = document.getElementById('chat-send-btn');
@@ -673,7 +718,7 @@ Answer any further questions the farmer has about this disease, its treatment, o
         msgDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
         msgDiv.innerHTML = `
             <img id="ai-thinking-avatar" src="Pic/loading.gif" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-top: 2px; flex-shrink: 0;">
-            <div class="msg-bubble msg-bot"></div>
+            <div class="msg-bubble msg-bot" style="background: white; padding: 10px 14px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
         `;
         document.getElementById(containerId).appendChild(msgDiv);
         scrollToBottom();
@@ -693,6 +738,7 @@ Answer any further questions the farmer has about this disease, its treatment, o
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let tokenBuffer = '';
 
             outer: while (true) {
                 const { done, value } = await reader.read();
@@ -723,10 +769,49 @@ Answer any further questions the farmer has about this disease, its treatment, o
                         }
 
                         fullReply += token;
-                        activeBubble.innerHTML = renderMarkdown(fullReply);
-                        scrollToBottom();
+                        tokenBuffer += token;
+
+                        const hasSentenceEnd = /[.!?\n]/.test(tokenBuffer);
+                        const isLongEnough = tokenBuffer.trim().length >= 60;
+
+                        if (hasSentenceEnd && isLongEnough) {
+                            const breakMatch = tokenBuffer.match(/^([\s\S]*[.!?\n])\s*/);
+                            if (breakMatch) {
+                                const chunkText = renderMarkdown(breakMatch[1]);
+                                const remainder = tokenBuffer.substring(breakMatch[0].length);
+
+                                activeBubble.innerHTML = chunkText;
+                                scrollToBottom();
+
+                                await new Promise(r => setTimeout(r, 200));
+
+                                const nextDiv = document.createElement('div');
+                                nextDiv.style.cssText = "display: flex; gap: 10px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+                                nextDiv.innerHTML = `
+                                    <div style="width: 32px; height: 32px; flex-shrink: 0;"></div>
+                                    <div class="msg-bubble msg-bot" style="background: white; padding: 10px 14px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 13px; line-height: 1.5; color: var(--text-primary); max-width: 85%;"></div>
+                                `;
+                                document.getElementById(containerId).appendChild(nextDiv);
+                                scrollToBottom();
+                                
+                                activeBubble = nextDiv.querySelector('.msg-bubble');
+                                tokenBuffer = remainder;
+                            } else {
+                                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                            }
+                        } else {
+                            activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                            scrollToBottom();
+                        }
                     }
                 }
+            }
+
+            if (tokenBuffer.trim()) {
+                activeBubble.innerHTML = renderMarkdown(tokenBuffer);
+                scrollToBottom();
+            } else if (!activeBubble.innerHTML.trim()) {
+                activeBubble.closest('div').remove();
             }
 
         } catch (err) {
