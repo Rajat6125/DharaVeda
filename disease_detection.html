@@ -571,7 +571,10 @@
                 { role: 'system', content: systemPrompt }
             ];
 
-            const detailsPrompt = `Please provide a concise description of ${formattedDisease}, followed by its Symptoms and Treatment (or Organic Control) in markdown bullet points. Do not use overarching titles, just format it cleanly. Keep it very concise.`;
+            const detailsPrompt = `Please provide a short description (1-2 sentences) of ${formattedDisease}.
+Then, add an empty line and write "**Symptoms**" followed by a bulleted list of the symptoms.
+Then, add an empty line and write "**Treatment**" followed by a bulleted list of the treatments.
+Ensure the response is properly spaced, easy to read, and very concise.`;
             
             // Stream the details into the card
             await streamCardDetails([{ role: 'system', content: systemPrompt }, { role: 'user', content: detailsPrompt }]);
