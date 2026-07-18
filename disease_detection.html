@@ -457,9 +457,9 @@
 
     function formatList(text) {
         if (!text) return 'No details available.';
-        const items = text.split('\\n').map(line => line.replace(/^[•\\-\\*]\\s*/, '').trim()).filter(Boolean);
+        const items = text.split('\n').map(line => line.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
         if(items.length === 0) return 'No details available.';
-        return '<ul>' + items.map(item => `<li>\${item}</li>`).join('') + '</ul>';
+        return '<ul>' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
 
     async function submitImage() {
@@ -471,7 +471,7 @@
 
         // Add a chat message for the image upload
         const previewSrc = document.getElementById('image-preview').src;
-        appendMessage('user', `<img src="\${previewSrc}" style="max-width: 150px; border-radius: 8px;">`);
+        appendMessage('user', `<img src="${previewSrc}" style="max-width: 150px; border-radius: 8px;">`);
         
         document.getElementById('upload-card').style.display = 'none';
 
@@ -492,7 +492,7 @@
             const controller = new AbortController();
             const fetchTimeout = setTimeout(() => controller.abort(), 55000);
 
-            const response = await fetch(`\${API_BASE}/api/disease_detect`, {
+            const response = await fetch(`${API_BASE}/api/disease_detect`, {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal
@@ -505,7 +505,7 @@
             const result = await response.json();
 
             if (!response.ok || !result.success) {
-                appendMessage('bot', `⚠️ Analysis failed: \${result.error || 'Server error'}. Please refresh and try again.`);
+                appendMessage('bot', `⚠️ Analysis failed: ${result.error || 'Server error'}. Please refresh and try again.`);
                 return;
             }
 
@@ -539,20 +539,20 @@
                 
                 <div class="diag-grid">
                     <div class="diag-img-box">
-                        <img src="\${result.heatmap_base64 ? 'data:image/jpeg;base64,' + result.heatmap_base64 : previewSrc}" alt="Diagnosis Image">
+                        <img src="${result.heatmap_base64 ? 'data:image/jpeg;base64,' + result.heatmap_base64 : previewSrc}" alt="Diagnosis Image">
                     </div>
                     <div class="diag-info">
                         <p class="diag-label">Diagnosed Condition</p>
-                        <h3 class="diag-title">\${formattedDisease}</h3>
+                        <h3 class="diag-title">${formattedDisease}</h3>
                         
                         <div class="diag-conf-row">
                             <div class="diag-conf-bar">
-                                <div class="diag-conf-fill" style="width: \${result.confidence}%"></div>
+                                <div class="diag-conf-fill" style="width: ${result.confidence}%"></div>
                             </div>
-                            <span class="diag-conf-text">\${result.confidence}%</span>
+                            <span class="diag-conf-text">${result.confidence}%</span>
                         </div>
                         
-                        <p class="diag-desc">\${causeDesc}</p>
+                        <p class="diag-desc">${causeDesc}</p>
                     </div>
                 </div>
                 
@@ -565,18 +565,18 @@
                             <h4 class="diag-section-title">Symptoms</h4>
                         </div>
                         <div class="diag-list">
-                            \${formatList(symptomsText)}
+                            ${formatList(symptomsText)}
                         </div>
                     </div>
                     
-                    \${!isHealthy ? `
+                    ${!isHealthy ? `
                     <div>
                         <div class="diag-section-header">
                             <div class="diag-icon-box"><i class="fa-solid fa-shield-halved"></i></div>
                             <h4 class="diag-section-title">Treatment & Control</h4>
                         </div>
                         <div class="diag-list">
-                            \${combinedTreatment}
+                            ${combinedTreatment}
                         </div>
                     </div>
                     ` : ''}
@@ -595,11 +595,11 @@
             scrollToBottom();
 
             // Setup Chat Context
-            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "\${formattedDisease}" (Confidence: \${result.confidence}%).
-Symptoms: \${symptomsText}
-Cause: \${causeDesc}
-Treatment: \${treatmentText}
-Prevention: \${preventionText}
+            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).
+Symptoms: ${symptomsText}
+Cause: ${causeDesc}
+Treatment: ${treatmentText}
+Prevention: ${preventionText}
 Answer any further questions the farmer has about this disease, its treatment, or general plant care. Keep answers concise, helpful, and friendly. Use plain text formatting, bullet points are okay.`;
             
             chatState.history = [
@@ -652,9 +652,9 @@ Answer any further questions the farmer has about this disease, its treatment, o
     function renderMarkdown(text) {
         if (!text) return '';
         let html = text;
-        html = html.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
-        html = html.replace(/\\*(.*?)\\*/g, '<em>$1</em>');
-        html = html.replace(/\\n/g, '<br>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/\n/g, '<br>');
         return html;
     }
 
@@ -664,7 +664,7 @@ Answer any further questions the farmer has about this disease, its treatment, o
         if (sendBtn) sendBtn.disabled = true;
 
         const headers = { 'Content-Type': 'application/json' };
-        if (jwtToken) headers['Authorization'] = `Bearer \${jwtToken}`;
+        if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
 
         let fullReply = '';
 
@@ -682,7 +682,7 @@ Answer any further questions the farmer has about this disease, its treatment, o
         let avatarSwapped = false;
 
         try {
-            const response = await fetch(`\${API_BASE}/api/ai_chat_stream`, {
+            const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ messages })
@@ -700,8 +700,8 @@ Answer any further questions the farmer has about this disease, its treatment, o
 
                 buffer += decoder.decode(value, { stream: true });
 
-                while (buffer.includes('\\n')) {
-                    const idx = buffer.indexOf('\\n');
+                while (buffer.includes('\n')) {
+                    const idx = buffer.indexOf('\n');
                     const line = buffer.substring(0, idx).trim();
                     buffer = buffer.substring(idx + 1);
 
