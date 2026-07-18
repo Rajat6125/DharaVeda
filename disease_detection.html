@@ -380,7 +380,7 @@
 
                 <h4 style="margin-bottom:8px;font-size:14px;color:var(--accent-green);">AI Heatmap</h4>
                 <p style="font-size:11px;color:#666;margin-bottom:8px;">Red areas highlight where the AI detected disease symptoms.</p>
-                <img src="data:image/jpeg;base64,${result.heatmap_base64}" class="heatmap-img" alt="GradCAM Heatmap">
+                ${result.heatmap_base64 ? `<img src="data:image/jpeg;base64,${result.heatmap_base64}" class="heatmap-img" alt="GradCAM Heatmap">` : ''}
 
                 <h4 style="margin-bottom:8px;font-size:14px;color:var(--accent-green);margin-top:15px;">Detailed Analysis</h4>
                 <div class="ai-details-box">${formatAIDetails(result.ai_details)}</div>

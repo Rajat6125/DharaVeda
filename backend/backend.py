@@ -1152,6 +1152,8 @@ Prevention:
             "ai_details": ai_details
         })
     except Exception as e:
+        import traceback
+        print(f"Disease detect error: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])

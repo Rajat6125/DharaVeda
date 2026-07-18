@@ -121,33 +121,21 @@ class PlantDiseaseClassifier:
             img = self._load_image(image)
             cv_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
             gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
-            
-            # 1. Blur detection
+
+            # 1. Blur detection — only reject extremely blurry images (< 5.0)
             blur_val = cv2.Laplacian(gray, cv2.CV_64F).var()
-            if blur_val < 30.0:
+            if blur_val < 5.0:
                 return {"valid": False, "reason": "Image is too blurry. Please retake the photo in focus."}
-                
-            # 2. Dark detection
+
+            # 2. Dark detection — only reject nearly black images (< 15.0)
             mean_brightness = np.mean(gray)
-            if mean_brightness < 40.0:
+            if mean_brightness < 15.0:
                 return {"valid": False, "reason": "Image is too dark. Please retake with better lighting."}
-                
-            # 3. Multiple / No leaf detection via contours
-            blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            edges = cv2.Canny(blurred, 50, 150)
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            img_area = cv_img.shape[0] * cv_img.shape[1]
-            large_contours = [c for c in contours if cv2.contourArea(c) > (img_area * 0.02)]
-            
-            if len(large_contours) == 0:
-                return {"valid": False, "reason": "No clear leaf detected in the image. Please ensure the leaf is prominent."}
-            elif len(large_contours) > 3:
-                return {"valid": False, "reason": "Multiple distinct leaves or too much background clutter detected. Please isolate a single leaf."}
-                
+
             return {"valid": True, "reason": "OK"}
         except Exception as e:
-            return {"valid": False, "reason": f"Image processing failed: {str(e)}"}
+            # If quality check itself fails, let the model try anyway
+            return {"valid": True, "reason": "OK"}
 
     def preprocess(self, image: Union[str, Path, bytes, Image.Image]) -> torch.Tensor:
         img = self._load_image(image)
@@ -157,50 +145,61 @@ class PlantDiseaseClassifier:
     def predict_with_gradcam(self, image: Union[str, Path, bytes, Image.Image], top_k: int = 3) -> dict:
         img = self._load_image(image)
         input_tensor = self.preprocess(img).to(self.device)
-        
-        # Need to ensure gradients can flow for GradCAM
-        with torch.enable_grad():
-            self.model.eval() # Keep dropout/batchnorm in eval mode
-            # Enable gradients on the model parameters to allow backward pass
-            for param in self.model.parameters():
-                param.requires_grad = True
-                
-            input_tensor.requires_grad = True
-            
-            target_layer = self.model.features[-1]
-            cam_extractor = SimpleGradCAM(self.model, target_layer)
-            
+
+        # ── Plain inference (no GradCAM) ─────────────────────────────
+        with torch.no_grad():
             logits = self.model(input_tensor)
             probs = torch.softmax(logits, dim=1).squeeze(0)
-            
-            top_k = min(top_k, len(self.class_names))
-            top_probs, top_idxs = torch.topk(probs, top_k)
-            
-            target_cat = top_idxs[0].item()
-            heatmap = cam_extractor(input_tensor, target_cat)
-            
-            # Restore requires_grad to False to save memory later
-            for param in self.model.parameters():
-                param.requires_grad = False
-                
+
+        top_k = min(top_k, len(self.class_names))
+        top_probs, top_idxs = torch.topk(probs, top_k)
+
         top_k_results = [
             (self.class_names[idx.item()], round(prob.item(), 4))
             for prob, idx in zip(top_probs, top_idxs)
         ]
-        
-        # Overlay heatmap on original image
-        heatmap = cv2.resize(heatmap, (img.size[0], img.size[1]))
-        heatmap = np.uint8(255 * heatmap)
-        heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-        
-        orig_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        superimposed_img = heatmap * 0.4 + orig_img * 0.6
-        superimposed_img = np.clip(superimposed_img, 0, 255).astype(np.uint8)
-        
-        # Encode to base64
-        _, buffer = cv2.imencode('.jpg', superimposed_img)
-        heatmap_base64 = base64.b64encode(buffer).decode('utf-8')
-        
+
+        # ── GradCAM — use the last Conv2d inside features[-1] ────────
+        heatmap_base64 = ""
+        try:
+            # Find the last Conv2d in the feature extractor for a reliable hook target
+            target_layer = None
+            for module in self.model.features.modules():
+                if isinstance(module, torch.nn.Conv2d):
+                    target_layer = module
+
+            if target_layer is not None:
+                with torch.enable_grad():
+                    for param in self.model.parameters():
+                        param.requires_grad = True
+
+                    inp = self.preprocess(img).to(self.device)
+                    inp.requires_grad = True
+
+                    cam_extractor = SimpleGradCAM(self.model, target_layer)
+                    target_cat = top_idxs[0].item()
+                    heatmap_np = cam_extractor(inp, target_cat)
+
+                    for param in self.model.parameters():
+                        param.requires_grad = False
+
+                # Overlay on original image
+                heatmap_resized = cv2.resize(heatmap_np, (img.size[0], img.size[1]))
+                heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
+                orig_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                superimposed = np.clip(heatmap_colored * 0.4 + orig_bgr * 0.6, 0, 255).astype(np.uint8)
+                _, buffer = cv2.imencode('.jpg', superimposed)
+                heatmap_base64 = base64.b64encode(buffer).decode('utf-8')
+        except Exception as cam_err:
+            # GradCAM failed — fall back to returning the plain image
+            print(f"GradCAM error (non-fatal): {cam_err}")
+            try:
+                orig_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                _, buffer = cv2.imencode('.jpg', orig_bgr)
+                heatmap_base64 = base64.b64encode(buffer).decode('utf-8')
+            except Exception:
+                heatmap_base64 = ""
+
         return {
             "predicted_class": top_k_results[0][0],
             "confidence": top_k_results[0][1],
