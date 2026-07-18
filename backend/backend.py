@@ -1168,6 +1168,109 @@ Prevention:
         print(f"Disease detect error: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+@app.route("/api/disease_info_stream", methods=["POST"])
+def disease_info_stream():
+    """
+    SSE streaming endpoint that returns disease info section by section.
+    Accepts: { "disease": "Apple___Cedar_apple_rust", "confidence": 25.21 }
+    Streams SSE events:
+      data: {"section": "description", "content": "..."}\n\n
+      data: {"section": "symptoms", "content": "..."}\n\n
+      data: {"section": "treatment", "content": "..."}\n\n
+      data: {"section": "cause", "content": "..."}\n\n
+      data: {"section": "prevention", "content": "..."}\n\n
+      data: [DONE]\n\n
+    """
+    data = request.get_json()
+    if not data or not data.get("disease"):
+        def err_gen():
+            yield b'data: {"section":"error","content":"disease name is required"}\n\n'
+            yield b"data: [DONE]\n\n"
+        return Response(stream_with_context(err_gen()), mimetype="text/event-stream",
+                        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    disease_name = data["disease"]
+    confidence = data.get("confidence", 0)
+
+    openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+
+    SECTIONS = ["description", "symptoms", "cause", "treatment", "prevention"]
+
+    def generate():
+        for section in SECTIONS:
+            if section == "description":
+                prompt = f"In exactly 2-3 sentences, describe what the plant disease '{disease_name}' is. Be factual and concise. No bullet points, no headers."
+            elif section == "symptoms":
+                prompt = f"List 4-5 key visual symptoms of '{disease_name}' plant disease. Each symptom on a new line starting with '• '. No intro text, just the bullet points."
+            elif section == "cause":
+                prompt = f"In 1-2 sentences, what causes '{disease_name}' (pathogen, environmental conditions)? Be concise and factual."
+            elif section == "treatment":
+                prompt = f"List 4-5 treatment steps for '{disease_name}' plant disease. Include both chemical and organic options. Each step on a new line starting with '• '. No intro text."
+            elif section == "prevention":
+                prompt = f"List 3-4 prevention measures for '{disease_name}' plant disease. Each on a new line starting with '• '. No intro text."
+
+            if not openrouter_key:
+                fallback = {
+                    "description": f"A plant condition detected based on visible leaf symptoms consistent with {disease_name.replace('___', ' - ').replace('_', ' ')}.",
+                    "symptoms": "• Yellow or brown spots on leaves\n• Wilting or curling of leaves\n• Discoloration of leaf tissue\n• Premature leaf drop",
+                    "cause": "Caused by fungal, bacterial, or viral pathogens that spread through water, wind, or contaminated tools.",
+                    "treatment": "• Remove and destroy infected plant material\n• Apply appropriate fungicide or bactericide\n• Improve air circulation around plants\n• Avoid overhead watering",
+                    "prevention": "• Use disease-resistant varieties\n• Practice crop rotation\n• Maintain proper plant spacing\n• Sanitize tools regularly"
+                }
+                content = fallback.get(section, "No details available.")
+                payload = json.dumps({"section": section, "content": content})
+                yield f"data: {payload}\n\n".encode("utf-8")
+                continue
+
+            FREE_MODELS = [
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "google/gemma-3-27b-it:free",
+                "qwen/qwen3-235b-a22b:free",
+            ]
+
+            content = None
+            for model_id in FREE_MODELS:
+                try:
+                    resp = requests.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        json={
+                            "model": model_id,
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 200,
+                            "stream": False
+                        },
+                        headers={
+                            "Authorization": f"Bearer {openrouter_key}",
+                            "Content-Type": "application/json"
+                        },
+                        timeout=20
+                    )
+                    if resp.ok:
+                        content = resp.json()["choices"][0]["message"]["content"].strip()
+                        # Strip markdown fences if any
+                        import re
+                        content = re.sub(r'^```[a-zA-Z]*\n?', '', content)
+                        content = re.sub(r'\n?```$', '', content).strip()
+                        break
+                except Exception:
+                    continue
+
+            if not content:
+                content = "No details available."
+
+            payload = json.dumps({"section": section, "content": content})
+            yield f"data: {payload}\n\n".encode("utf-8")
+
+        yield b"data: [DONE]\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    )
+
+
 @app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])
 def trigger_update_crop_weather():
     thread = threading.Thread(target=process_weather_cron)
