@@ -61,7 +61,17 @@ class PlantDiseaseClassifier:
         if not Path(checkpoint_path).exists():
             raise FileNotFoundError(f"Model checkpoint not found at {checkpoint_path}")
 
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        # Patch for PosixPath on Windows
+        import pathlib
+        import platform
+        if platform.system() == 'Windows':
+            pathlib.PosixPath = pathlib.WindowsPath
+            
+        try:
+            checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+        except Exception as e:
+            print(f"Failed to load checkpoint with weights_only=False: {e}")
+            checkpoint = torch.load(checkpoint_path, map_location=self.device)
 
         if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
             self.class_names = checkpoint["class_names"]
@@ -88,7 +98,25 @@ class PlantDiseaseClassifier:
             state_dict = checkpoint if isinstance(checkpoint, dict) else checkpoint.state_dict()
 
         self.model = self._build_model(model_name, num_classes)
-        self.model.load_state_dict(state_dict)
+        
+        # Strip prefixes from state_dict keys if they exist (e.g. from DataParallel)
+        clean_state_dict = {}
+        for k, v in state_dict.items():
+            if k.startswith('module.'):
+                clean_state_dict[k[7:]] = v
+            elif k.startswith('model.'):
+                clean_state_dict[k[6:]] = v
+            else:
+                clean_state_dict[k] = v
+                
+        try:
+            self.model.load_state_dict(clean_state_dict, strict=False)
+        except Exception as e:
+            print(f"Warning: load_state_dict had issues: {e}")
+            if isinstance(checkpoint, torch.nn.Module):
+                print("Falling back to full model object from checkpoint.")
+                self.model = checkpoint
+                
         self.model.to(self.device)
         self.model.eval()
 
