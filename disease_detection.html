@@ -209,7 +209,7 @@
         .msg-bubble li { margin-bottom: 4px; }
         
         .msg-user {
-            background: #1E2A1F;
+            background: #f97316;
             color: #ffffff;
             border-bottom-right-radius: 0;
             margin-left: auto;
@@ -512,16 +512,6 @@
             // ── Success ──────────────────────────────────────────────
             const isHealthy = result.disease.toLowerCase().includes('healthy');
             const formattedDisease = result.disease.replace(/___/g, ' — ').replace(/_/g, ' ');
-            
-            const aiDetails = result.ai_details || '';
-            const causeDesc = extractSection(aiDetails, 'Cause') || 'A plant condition detected based on visible leaf symptoms.';
-            const symptomsText = extractSection(aiDetails, 'Symptoms');
-            const treatmentText = extractSection(aiDetails, 'Treatment');
-            const organicControlText = extractSection(aiDetails, 'Organic Control');
-            const preventionText = extractSection(aiDetails, 'Prevention');
-
-            let combinedTreatment = formatList(treatmentText);
-            if (organicControlText) combinedTreatment += '<br><strong>Organic Options:</strong><br>' + formatList(organicControlText);
 
             chatState.diseaseData = {
                 name: formattedDisease,
@@ -551,35 +541,15 @@
                             </div>
                             <span class="diag-conf-text">${result.confidence}%</span>
                         </div>
-                        
-                        <p class="diag-desc" style="margin-top: 10px;">${causeDesc}</p>
                     </div>
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
                 
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div>
-                        <div class="diag-section-header">
-                            <div class="diag-icon-box"><i class="fa-solid fa-magnifying-glass"></i></div>
-                            <h4 class="diag-section-title">Symptoms</h4>
-                        </div>
-                        <div class="diag-list">
-                            ${formatList(symptomsText)}
-                        </div>
+                <div id="card-streaming-content" style="font-size: 14px; color: #444; line-height: 1.6;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #888;">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Generating disease details in real time...
                     </div>
-                    
-                    ${!isHealthy ? `
-                    <div>
-                        <div class="diag-section-header">
-                            <div class="diag-icon-box"><i class="fa-solid fa-shield-halved"></i></div>
-                            <h4 class="diag-section-title">Treatment</h4>
-                        </div>
-                        <div class="diag-list">
-                            ${combinedTreatment}
-                        </div>
-                    </div>
-                    ` : ''}
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
@@ -595,19 +565,26 @@
             scrollToBottom();
 
             // Setup Chat Context
-            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).
-Symptoms: ${symptomsText}
-Cause: ${causeDesc}
-Treatment: ${treatmentText}
-Answer any further questions the farmer has about this disease, its treatment, or general plant care. Keep answers concise, helpful, and friendly. Use plain text formatting, bullet points are okay.`;
+            const systemPrompt = `You are Krsi Vaidyah, an expert agricultural AI assistant. You just diagnosed a plant leaf with "${formattedDisease}" (Confidence: ${result.confidence}%).`;
             
             chatState.history = [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: `I have received the diagnosis for ${formattedDisease}. Please provide a very brief comforting response (1-2 sentences) and then ask: "Do you have any other concerns regarding the diagnosis or diseases?"` }
+                { role: 'system', content: systemPrompt }
             ];
 
-            // Use the AI API to stream the follow-up response
-            await streamAIResponse([{ role: 'system', content: systemPrompt }, chatState.history[1]]);
+            const detailsPrompt = `Please provide a concise description of ${formattedDisease}, followed by its Symptoms and Treatment (or Organic Control) in markdown bullet points. Do not use overarching titles, just format it cleanly. Keep it very concise.`;
+            
+            // Stream the details into the card
+            await streamCardDetails([{ role: 'system', content: systemPrompt }, { role: 'user', content: detailsPrompt }]);
+
+            // Update history with generated details context
+            const generatedDetails = document.getElementById('card-streaming-content').innerHTML;
+            chatState.history.push({ role: 'assistant', content: "Diagnosis Details:\n" + generatedDetails });
+            
+            // Setup follow-up chat
+            const followUpPrompt = `I have received the diagnosis details for ${formattedDisease}. Please provide a very brief comforting response (1 sentence max) and then ask: "Do you have any other concerns regarding the diagnosis or diseases?"`;
+
+            // Use the AI API to stream the follow-up response in chat bubbles
+            await streamAIResponse([{ role: 'system', content: systemPrompt }, { role: 'user', content: followUpPrompt }]);
             
             showChatInput();
             scrollToBottom();
@@ -658,6 +635,54 @@ Answer any further questions the farmer has about this disease, its treatment, o
     }
 
     // Removed simulateAIStream since we now use streamAIResponse for the follow-up message
+
+    async function streamCardDetails(messages) {
+        const container = document.getElementById('card-streaming-content');
+        if (!container) return;
+        
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwtToken) headers['Authorization'] = `Bearer ${jwtToken}`;
+
+            const response = await fetch(`${API_BASE}/api/ai_chat_stream`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ messages })
+            });
+
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let fullText = '';
+
+            outer: while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                while (buffer.includes('\n')) {
+                    const idx = buffer.indexOf('\n');
+                    const line = buffer.substring(0, idx).trim();
+                    buffer = buffer.substring(idx + 1);
+
+                    if (line.startsWith('data: ')) {
+                        const token = line.substring(6);
+                        if (token === '[DONE]') break outer;
+                        if (token.startsWith('[ERROR]')) break outer;
+
+                        fullText += token;
+                        container.innerHTML = renderMarkdown(fullText);
+                        scrollToBottom();
+                    }
+                }
+            }
+        } catch (err) {
+            container.innerHTML = 'Details could not be generated at this time.';
+        }
+    }
 
     async function streamAIResponse(messages) {
         chatState.isStreaming = true;
