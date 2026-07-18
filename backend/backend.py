@@ -534,7 +534,7 @@ def ai_chat_stream():
                         except (json.JSONDecodeError, IndexError, KeyError):
                             continue
 
-                # Successfully streamed — done
+                # Successfully streamed â€” done
                 yield b"data: [DONE]\n\n"
                 return
 
@@ -696,7 +696,7 @@ def add_crop_condition():
 
         if insert_resp.status_code in [200, 201]:
             # Generate AI description for timeline
-            ai_description = f"Crop of {crop_name} sown on {now_str[:10]}. Initial field conditions recorded: Soil Moisture {soil_moisture}%, pH {ph}, Temp {temp}°C, Humidity {hum}%, Rainfall {rain}mm."
+            ai_description = f"Crop of {crop_name} sown on {now_str[:10]}. Initial field conditions recorded: Soil Moisture {soil_moisture}%, pH {ph}, Temp {temp}Â°C, Humidity {hum}%, Rainfall {rain}mm."
             try:
                 prompt = f"Write a short, professional 2 sentence timeline entry for a crop registration. Details: Crop: {crop_name}, Date: {now_str[:10]}, Moisture: {soil_moisture}%, pH: {ph}, Temp: {temp}C, Humidity: {hum}%, Rainfall: {rain}mm. Start exactly with: 'Crop of {crop_name} sown on {now_str[:10]}.'"
                 api_key = os.getenv("OPENROUTER_API_KEY", "")
@@ -1120,8 +1120,8 @@ Confidence:
 {round(result["confidence"] * 100, 1)}%
 
 Symptoms:
-• [symptom 1]
-• [symptom 2]
+â€¢ [symptom 1]
+â€¢ [symptom 2]
 
 Cause:
 [cause]
@@ -1130,14 +1130,14 @@ Severity:
 [severity]
 
 Treatment:
-• [treatment 1]
-• [treatment 2]
+â€¢ [treatment 1]
+â€¢ [treatment 2]
 
 Organic Control:
-• [control 1]
+â€¢ [control 1]
 
 Prevention:
-• [prevention 1]
+â€¢ [prevention 1]
 """
             llm_resp = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
@@ -1172,15 +1172,9 @@ Prevention:
 @app.route("/api/disease_info_stream", methods=["POST"])
 def disease_info_stream():
     """
-    SSE streaming endpoint that returns disease info section by section.
+    Single LLM call returning all 5 sections in a structured block.
+    Streams each section as an SSE JSON event once parsed.
     Accepts: { "disease": "Apple___Cedar_apple_rust", "confidence": 25.21 }
-    Streams SSE events:
-      data: {"section": "description", "content": "..."}\n\n
-      data: {"section": "symptoms", "content": "..."}\n\n
-      data: {"section": "treatment", "content": "..."}\n\n
-      data: {"section": "cause", "content": "..."}\n\n
-      data: {"section": "prevention", "content": "..."}\n\n
-      data: [DONE]\n\n
     """
     data = request.get_json()
     if not data or not data.get("disease"):
@@ -1191,45 +1185,56 @@ def disease_info_stream():
                         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     disease_name = data["disease"]
-    confidence = data.get("confidence", 0)
-
+    friendly_name = disease_name.replace("___", " - ").replace("_", " ")
     openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
 
-    SECTIONS = ["description", "symptoms", "cause", "treatment", "prevention"]
+    FALLBACKS = {
+        "description": f"{friendly_name} is a plant disease that affects leaf tissue, causing visible damage and reduced crop health.",
+        "symptoms": "• Yellow or brown spots on leaves\n• Wilting or curling of leaf edges\n• Discoloration or necrosis of leaf tissue\n• Premature leaf drop\n• Powdery or rusty coating on surfaces",
+        "cause": f"{friendly_name} is caused by a fungal, bacterial, or viral pathogen that spreads through water splash, wind, or contaminated tools.",
+        "treatment": "• Remove and destroy all infected plant material\n• Apply an appropriate fungicide or bactericide\n• Improve air circulation around plants\n• Avoid overhead watering\n• Use copper-based sprays as an organic option",
+        "prevention": "• Plant disease-resistant varieties\n• Practice crop rotation each season\n• Maintain proper plant spacing\n• Sanitize tools and equipment regularly",
+    }
 
     def generate():
-        for section in SECTIONS:
-            if section == "description":
-                prompt = f"In exactly 2-3 sentences, describe what the plant disease '{disease_name}' is. Be factual and concise. No bullet points, no headers."
-            elif section == "symptoms":
-                prompt = f"List 4-5 key visual symptoms of '{disease_name}' plant disease. Each symptom on a new line starting with '• '. No intro text, just the bullet points."
-            elif section == "cause":
-                prompt = f"In 1-2 sentences, what causes '{disease_name}' (pathogen, environmental conditions)? Be concise and factual."
-            elif section == "treatment":
-                prompt = f"List 4-5 treatment steps for '{disease_name}' plant disease. Include both chemical and organic options. Each step on a new line starting with '• '. No intro text."
-            elif section == "prevention":
-                prompt = f"List 3-4 prevention measures for '{disease_name}' plant disease. Each on a new line starting with '• '. No intro text."
+        import re as _re
 
-            if not openrouter_key:
-                fallback = {
-                    "description": f"A plant condition detected based on visible leaf symptoms consistent with {disease_name.replace('___', ' - ').replace('_', ' ')}.",
-                    "symptoms": "• Yellow or brown spots on leaves\n• Wilting or curling of leaves\n• Discoloration of leaf tissue\n• Premature leaf drop",
-                    "cause": "Caused by fungal, bacterial, or viral pathogens that spread through water, wind, or contaminated tools.",
-                    "treatment": "• Remove and destroy infected plant material\n• Apply appropriate fungicide or bactericide\n• Improve air circulation around plants\n• Avoid overhead watering",
-                    "prevention": "• Use disease-resistant varieties\n• Practice crop rotation\n• Maintain proper plant spacing\n• Sanitize tools regularly"
-                }
-                content = fallback.get(section, "No details available.")
-                payload = json.dumps({"section": section, "content": content})
-                yield f"data: {payload}\n\n".encode("utf-8")
-                continue
+        sections_content = dict(FALLBACKS)  # start with fallbacks
+
+        if openrouter_key:
+            prompt = f"""You are a plant pathology expert. For the plant disease "{friendly_name}", provide information in EXACTLY this format with these exact section headers. Do not add any extra text, markdown, or explanations outside the sections.
+
+DESCRIPTION:
+[2-3 sentences describing what this disease is]
+
+SYMPTOMS:
+• [symptom 1]
+• [symptom 2]
+• [symptom 3]
+• [symptom 4]
+
+CAUSE:
+[1-2 sentences about the pathogen and how it spreads]
+
+TREATMENT:
+• [treatment step 1]
+• [treatment step 2]
+• [treatment step 3]
+• [treatment step 4]
+
+PREVENTION:
+• [prevention tip 1]
+• [prevention tip 2]
+• [prevention tip 3]"""
 
             FREE_MODELS = [
                 "meta-llama/llama-3.3-70b-instruct:free",
                 "google/gemma-3-27b-it:free",
                 "qwen/qwen3-235b-a22b:free",
+                "nousresearch/hermes-3-llama-3.1-405b:free",
             ]
 
-            content = None
+            llm_text = None
             for model_id in FREE_MODELS:
                 try:
                     resp = requests.post(
@@ -1237,28 +1242,52 @@ def disease_info_stream():
                         json={
                             "model": model_id,
                             "messages": [{"role": "user", "content": prompt}],
-                            "max_tokens": 200,
-                            "stream": False
+                            "max_tokens": 600,
+                            "stream": False,
+                            "temperature": 0.3,
                         },
                         headers={
                             "Authorization": f"Bearer {openrouter_key}",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "HTTP-Referer": "https://dharaveda.app",
+                            "X-Title": "DharaVeda",
                         },
-                        timeout=20
+                        timeout=30,
                     )
                     if resp.ok:
-                        content = resp.json()["choices"][0]["message"]["content"].strip()
-                        # Strip markdown fences if any
-                        import re
-                        content = re.sub(r'^```[a-zA-Z]*\n?', '', content)
-                        content = re.sub(r'\n?```$', '', content).strip()
-                        break
-                except Exception:
+                        llm_text = resp.json()["choices"][0]["message"]["content"].strip()
+                        if llm_text:
+                            break
+                except Exception as e:
+                    print(f"disease_info_stream model {model_id} error: {e}")
                     continue
 
-            if not content:
-                content = "No details available."
+            if llm_text:
+                # Parse the structured response
+                section_map = {
+                    "DESCRIPTION": "description",
+                    "SYMPTOMS": "symptoms",
+                    "CAUSE": "cause",
+                    "TREATMENT": "treatment",
+                    "PREVENTION": "prevention",
+                }
+                # Split on section headers
+                parts = _re.split(r'\n?(DESCRIPTION|SYMPTOMS|CAUSE|TREATMENT|PREVENTION):\s*\n', llm_text)
+                # parts will be: ["", "DESCRIPTION", "content", "SYMPTOMS", "content", ...]
+                i = 1
+                while i < len(parts) - 1:
+                    header = parts[i].strip()
+                    content = parts[i + 1].strip() if i + 1 < len(parts) else ""
+                    # Strip markdown fences
+                    content = _re.sub(r'^```[a-zA-Z]*\n?', '', content)
+                    content = _re.sub(r'\n?```$', '', content).strip()
+                    if header in section_map and content:
+                        sections_content[section_map[header]] = content
+                    i += 2
 
+        # Stream each section as an SSE event
+        for section in ["description", "symptoms", "cause", "treatment", "prevention"]:
+            content = sections_content.get(section, "No details available.")
             payload = json.dumps({"section": section, "content": content})
             yield f"data: {payload}\n\n".encode("utf-8")
 
@@ -1267,9 +1296,8 @@ def disease_info_stream():
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
-
 
 @app.route('/api/cron/update_crop_weather', methods=['GET', 'POST'])
 def trigger_update_crop_weather():
