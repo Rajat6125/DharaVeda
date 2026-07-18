@@ -2,6 +2,12 @@ from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 import requests
 import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import json
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +18,12 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
+
+try:
+    import torch
+    torch.set_num_threads(1)
+except Exception:
+    pass
 
 load_dotenv()
 
