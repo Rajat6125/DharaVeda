@@ -717,45 +717,64 @@
         <a href="crop_tracker.html">View All <i class="fa-solid fa-chevron-right"></i></a>
     </div>
 
-    <div class="tracker-card">
-        <div class="tracker-top">
-            <div class="crop-img">🌾</div>
-            <div class="crop-info">
-                <h3>Rice</h3>
-                <p>Vegetative Growth Stage</p>
-                <div class="crop-stats-mini">
-                    <div class="crop-stat-mini">
-                        <i class="fa-regular fa-calendar"></i>
-                        <span class="lbl">Sown</span>
-                        <span>12 June</span>
-                    </div>
-                    <div class="crop-stat-mini">
-                        <i class="fa-solid fa-droplet" style="color: #64B5F6;"></i>
-                        <span class="lbl">Water</span>
-                        <span>Good</span>
-                    </div>
-                    <div class="crop-stat-mini">
-                        <i class="fa-solid fa-shield-halved" style="color: #4CAF50;"></i>
-                        <span class="lbl">Health</span>
-                        <span>Healthy</span>
-                    </div>
-                </div>
-            </div>
+    <div class="tracker-card" id="tracker-card-main">
+        <!-- Loading state -->
+        <div id="tracker-loading" style="text-align:center; padding: 24px 0; color: var(--text-secondary); font-size: 13px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--accent-green); display: block; margin-bottom: 8px;"></i>
+            Loading your crop data...
         </div>
-        <div class="progress-section">
-            <div class="progress-header">
-                <h4>82%</h4>
-                <span>Growth Progress</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-            <div class="next-action">
-                <div class="next-action-info">
-                    <h5>Next Action</h5>
-                    <p>Apply Nitrogen fertilizer within 5 days</p>
+
+        <!-- No crop registered state -->
+        <div id="tracker-no-crop" style="display:none; text-align:center; padding: 20px 0;">
+            <div style="font-size: 36px; margin-bottom: 8px;">🌱</div>
+            <p style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">No crop registered yet</p>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">Register your first crop to start tracking</p>
+            <a href="crop_register.html" style="background: var(--accent-green); color: white; border: none; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-plus"></i> Register Crop
+            </a>
+        </div>
+
+        <!-- Live crop data -->
+        <div id="tracker-data" style="display:none;">
+            <div class="tracker-top">
+                <div class="crop-img" id="tracker-crop-emoji">🌾</div>
+                <div class="crop-info">
+                    <h3 id="tracker-crop-name">--</h3>
+                    <p id="tracker-crop-stage">--</p>
+                    <div class="crop-stats-mini">
+                        <div class="crop-stat-mini">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span class="lbl">Sown</span>
+                            <span id="tracker-sown-date">--</span>
+                        </div>
+                        <div class="crop-stat-mini">
+                            <i class="fa-solid fa-droplet" style="color: #64B5F6;"></i>
+                            <span class="lbl">Water</span>
+                            <span id="tracker-water">--</span>
+                        </div>
+                        <div class="crop-stat-mini">
+                            <i class="fa-solid fa-shield-halved" style="color: #4CAF50;"></i>
+                            <span class="lbl">Health</span>
+                            <span id="tracker-health">--</span>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn-view">View Details <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="progress-section">
+                <div class="progress-header">
+                    <h4 id="tracker-progress-pct">0%</h4>
+                    <span>Growth Progress</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="tracker-progress-fill" style="width: 0%;"></div>
+                </div>
+                <div class="next-action">
+                    <div class="next-action-info">
+                        <h5>Next Action</h5>
+                        <p id="tracker-next-action">--</p>
+                    </div>
+                    <button class="btn-view" onclick="window.location.href='dashboard.html'">View Details <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -952,6 +971,158 @@
         }
 
         updateWeatherByLocation(userDistrict, userState);
+
+        // ── Crop Tracker Card: live data from Supabase ──────────────────────
+        const SUPABASE_URL = "https://hjzqywjtssveipriurgn.supabase.co/rest/v1";
+        const SUPABASE_KEY = "sb_publishable_e8s8-nmm0EDSCy8_j9UVaQ_WOfa6SlX";
+
+        // Crop emoji map
+        const cropEmojiMap = {
+            'Rice': '🌾', 'Wheat': '🌾', 'Maize': '🌽', 'Corn': '🌽',
+            'Chickpea': '🫘', 'Kidneybeans': '🫘', 'Pigeonpeas': '🫘',
+            'Mothbeans': '🫘', 'Mungbean': '🫘', 'Blackgram': '🫘', 'Lentil': '🫘',
+            'Pomegranate': '🍎', 'Banana': '🍌', 'Mango': '🥭',
+            'Grapes': '🍇', 'Watermelon': '🍉', 'Muskmelon': '🍈',
+            'Apple': '🍎', 'Orange': '🍊', 'Papaya': '🍈', 'Coconut': '🥥',
+            'Cotton': '🌿', 'Jute': '🌿', 'Coffee': '☕',
+            'Sugarcane': '🎋', 'Tomato': '🍅', 'Potato': '🥔'
+        };
+
+        async function loadCropTrackerCard() {
+            const loadingEl = document.getElementById('tracker-loading');
+            const noCropEl  = document.getElementById('tracker-no-crop');
+            const dataEl    = document.getElementById('tracker-data');
+
+            try {
+                // Resolve email from token
+                let email_phone = '';
+                if (token) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        email_phone = payload.email_phone || '';
+                    } catch(e) {}
+                }
+                if (!email_phone && userDataStr) {
+                    try {
+                        const ud = JSON.parse(userDataStr);
+                        email_phone = ud.email_phone || ud.email || '';
+                    } catch(e) {}
+                }
+                if (!email_phone) { showNoCrop(); return; }
+
+                const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+                // 1. Get farmer ID
+                const userRes = await fetch(
+                    `${SUPABASE_URL}/User_database?select=id&Email_Phone=eq.${encodeURIComponent(email_phone)}`,
+                    { headers }
+                );
+                const users = await userRes.json();
+                if (!users || users.length === 0) { showNoCrop(); return; }
+                const farmer_id = users[0].id;
+
+                // 2. Get latest crop
+                const cropRes = await fetch(
+                    `${SUPABASE_URL}/crop_system?select=*&farmer_id=eq.${farmer_id}&order=sowing_date.desc&limit=1`,
+                    { headers }
+                );
+                const crops = await cropRes.json();
+                if (!crops || crops.length === 0) { showNoCrop(); return; }
+
+                const crop = crops[0];
+                const cropId = crop.crop_id;
+
+                // 3. Compute growth progress
+                let progress = crop.growth_progress || 0;
+                if (crop.sowing_date && crop.expected_harvest) {
+                    const start    = new Date(crop.sowing_date);
+                    const end      = new Date(crop.expected_harvest);
+                    const now      = new Date();
+                    const total    = (end - start) / (1000 * 60 * 60 * 24);
+                    const passed   = (now - start) / (1000 * 60 * 60 * 24);
+                    if (total > 0) progress = Math.min(100, Math.max(0, Math.round((passed / total) * 100)));
+                } else if (crop.age) {
+                    progress = Math.min(100, Math.round((crop.age / 120) * 100));
+                }
+
+                // 4. Latest condition snapshot for water / health
+                let moistureStatus = 'Good';
+                let healthStatus   = 'Healthy';
+                try {
+                    const snapRes = await fetch(
+                        `${SUPABASE_URL}/crop_condition_snapshot?select=soil_moisture,health_score&crop_id=eq.${cropId}&order=date.desc&limit=1`,
+                        { headers }
+                    );
+                    const snaps = await snapRes.json();
+                    if (snaps && snaps.length > 0) {
+                        const s = snaps[0];
+                        const moisture = s.soil_moisture || 0;
+                        if (moisture >= 60) moistureStatus = 'High';
+                        else if (moisture >= 30) moistureStatus = 'Good';
+                        else moistureStatus = 'Low';
+
+                        const health = (s.health_score <= 10) ? s.health_score * 10 : s.health_score;
+                        if (health >= 80)      healthStatus = 'Healthy';
+                        else if (health >= 60) healthStatus = 'Good';
+                        else if (health >= 40) healthStatus = 'Fair';
+                        else                   healthStatus = 'Poor';
+                    }
+                } catch(e) {}
+
+                // 5. Latest alert as next action
+                let nextAction = 'Check crop growth and log observations.';
+                try {
+                    const alRes = await fetch(
+                        `${SUPABASE_URL}/crop_alerts?select=title,description&crop_id=eq.${cropId}&order=time.desc&limit=1`,
+                        { headers }
+                    );
+                    const alerts = await alRes.json();
+                    if (alerts && alerts.length > 0) {
+                        nextAction = alerts[0].title || alerts[0].description || nextAction;
+                    }
+                } catch(e) {}
+
+                // 6. Format sowing date
+                let sownDisplay = '--';
+                if (crop.sowing_date) {
+                    const d = new Date(crop.sowing_date);
+                    sownDisplay = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                }
+
+                // 7. Populate the card
+                document.getElementById('tracker-crop-emoji').textContent = cropEmojiMap[crop.crop] || '🌿';
+                document.getElementById('tracker-crop-name').textContent  = crop.crop || '--';
+                document.getElementById('tracker-crop-stage').textContent = crop.current_stage || 'Growing';
+                document.getElementById('tracker-sown-date').textContent  = sownDisplay;
+                document.getElementById('tracker-water').textContent      = moistureStatus;
+                document.getElementById('tracker-health').textContent     = healthStatus;
+                document.getElementById('tracker-progress-pct').textContent = progress + '%';
+                document.getElementById('tracker-progress-fill').style.width = progress + '%';
+                document.getElementById('tracker-next-action').textContent = nextAction;
+
+                // Colour health text
+                const healthEl = document.getElementById('tracker-health');
+                if (healthStatus === 'Healthy' || healthStatus === 'Good') healthEl.style.color = '#4CAF50';
+                else if (healthStatus === 'Fair') healthEl.style.color = '#FF9800';
+                else healthEl.style.color = '#F44336';
+
+                loadingEl.style.display = 'none';
+                noCropEl.style.display  = 'none';
+                dataEl.style.display    = 'block';
+
+            } catch(err) {
+                console.error('Crop tracker card error:', err);
+                showNoCrop();
+            }
+
+            function showNoCrop() {
+                loadingEl.style.display = 'none';
+                noCropEl.style.display  = 'block';
+                dataEl.style.display    = 'none';
+            }
+        }
+
+        loadCropTrackerCard();
     });
 </script>
 
